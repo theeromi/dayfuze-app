@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import {
   collection,
   query,
@@ -60,7 +60,7 @@ interface TaskProviderProps {
   children: ReactNode;
 }
 
-export const TaskProvider: React.FC<TaskProviderProps> = ({ children }) => {
+export function TaskProvider({ children }: TaskProviderProps) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const { currentUser } = useAuth();
@@ -209,4 +209,4 @@ export const TaskProvider: React.FC<TaskProviderProps> = ({ children }) => {
   };
 
   return <TaskContext.Provider value={value}>{children}</TaskContext.Provider>;
-};
+}

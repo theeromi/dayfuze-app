@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
 interface NotificationData {
   title: string;
@@ -28,7 +28,7 @@ interface NotificationProviderProps {
   children: ReactNode;
 }
 
-export const NotificationProvider: React.FC<NotificationProviderProps> = ({ children }) => {
+export function NotificationProvider({ children }: NotificationProviderProps) {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [scheduledNotifications, setScheduledNotifications] = useState<Map<string, number>>(new Map());
 
@@ -122,4 +122,4 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   };
 
   return <NotificationContext.Provider value={value}>{children}</NotificationContext.Provider>;
-};
+}
