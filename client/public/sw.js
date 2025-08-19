@@ -1,5 +1,5 @@
 // Service Worker for push notifications and caching
-const CACHE_NAME = 'dayfuse-v2';
+const CACHE_NAME = 'dayfuse-v3';
 const urlsToCache = [
   '/',
   '/static/js/bundle.js',
@@ -10,46 +10,72 @@ const urlsToCache = [
   '/icon-512x512.svg'
 ];
 
+// Update state management
+let updateWaiting = false;
+let updateClients = [];
+
 // Install service worker and cache resources
 self.addEventListener('install', event => {
-  // Skip waiting to activate immediately
-  self.skipWaiting();
+  console.log('Service Worker: Installing new version');
   
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
-      .catch(err => console.warn('Cache install failed:', err))
+      .then(cache => {
+        console.log('Service Worker: Caching app shell');
+        return cache.addAll(urlsToCache);
+      })
+      .then(() => {
+        console.log('Service Worker: Installation complete');
+        // Don't skip waiting - let activation happen gracefully
+        updateWaiting = true;
+      })
+      .catch(err => {
+        console.error('Service Worker: Cache install failed:', err);
+        throw err;
+      })
   );
 });
 
 // Activate and clean up old caches
 self.addEventListener('activate', event => {
-  // Claim all clients immediately
-  self.clients.claim();
+  console.log('Service Worker: Activating new version');
   
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          // Delete old caches
-          if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
+    Promise.all([
+      // Clean up old caches
+      caches.keys().then(cacheNames => {
+        return Promise.all(
+          cacheNames.map(cacheName => {
+            if (cacheName !== CACHE_NAME) {
+              console.log('Service Worker: Deleting old cache:', cacheName);
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      }),
+      // Claim all clients
+      self.clients.claim()
+    ]).then(() => {
+      console.log('Service Worker: Activation complete');
+      
+      // Notify clients about available update (don't force immediate refresh)
+      return self.clients.matchAll();
+    }).then(clients => {
+      updateClients = clients;
+      
+      // Only show update prompt if there are active clients and update is available
+      if (clients.length > 0 && updateWaiting) {
+        clients.forEach(client => {
+          client.postMessage({
+            type: 'SW_UPDATE_AVAILABLE',
+            message: 'A new version of DayFuse is available! Update when ready.',
+            canUpdate: true
+          });
+        });
+        updateWaiting = false;
+      }
     })
   );
-  
-  // Notify all clients about the update
-  self.clients.matchAll().then(clients => {
-    clients.forEach(client => {
-      client.postMessage({
-        type: 'SW_UPDATED',
-        message: 'DayFuse has been updated! Refresh to get the latest features.'
-      });
-    });
-  });
 });
 
 // Fetch strategy: Network first, then cache
@@ -143,5 +169,34 @@ self.addEventListener('notificationclick', event => {
     event.waitUntil(
       clients.openWindow('/dashboard')
     );
+  }
+});
+
+// Handle messages from main thread
+self.addEventListener('message', event => {
+  console.log('Service Worker: Received message', event.data);
+  
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    // Client requested immediate update
+    console.log('Service Worker: Applying immediate update');
+    self.skipWaiting();
+    
+    // Notify all clients that update is being applied
+    self.clients.matchAll().then(clients => {
+      clients.forEach(client => {
+        client.postMessage({
+          type: 'SW_UPDATING',
+          message: 'Applying update...'
+        });
+      });
+    });
+  }
+  
+  if (event.data && event.data.type === 'CHECK_UPDATE') {
+    // Client is checking for updates
+    event.ports[0].postMessage({
+      hasUpdate: updateWaiting,
+      cacheVersion: CACHE_NAME
+    });
   }
 });

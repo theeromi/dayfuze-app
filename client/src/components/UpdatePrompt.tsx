@@ -1,82 +1,217 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { RefreshCw, Download, X } from 'lucide-react';
+import { RefreshCw, Download, X, Clock, CheckCircle2, AlertCircle, Wifi, WifiOff } from 'lucide-react';
+import { updateManager, type UpdateState } from '@/lib/updateManager';
 
 export default function UpdatePrompt() {
+  const [updateState, setUpdateState] = useState<UpdateState>({
+    available: false,
+    installing: false,
+    ready: false,
+    error: null
+  });
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showUpdate, setShowUpdate] = useState(false);
-  const [updateMessage, setUpdateMessage] = useState('');
 
   useEffect(() => {
-    // Only register service worker in production
-    if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
-      navigator.serviceWorker.addEventListener('message', (event) => {
-        if (event.data.type === 'SW_UPDATED') {
-          setUpdateMessage(event.data.message);
-          setShowUpdate(true);
-        }
-      });
+    // Initialize update manager
+    updateManager.initialize();
 
-      // Check for updates every 30 minutes
-      const checkForUpdates = () => {
-        navigator.serviceWorker.getRegistrations().then(registrations => {
-          registrations.forEach(registration => {
-            registration.update();
-          });
-        });
-      };
+    // Subscribe to update state changes
+    const unsubscribe = updateManager.subscribe((state) => {
+      setUpdateState(state);
+      setShowUpdate(state.available || state.installing || state.ready || !!state.error);
+    });
 
-      const updateInterval = setInterval(checkForUpdates, 30 * 60 * 1000); // 30 minutes
-      
-      // Check immediately
-      checkForUpdates();
+    // Listen for online/offline status
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
 
-      return () => clearInterval(updateInterval);
-    }
+    return () => {
+      unsubscribe();
+      updateManager.destroy();
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, []);
 
   const handleUpdate = () => {
-    window.location.reload();
+    updateManager.applyUpdate();
   };
 
   const handleDismiss = () => {
+    updateManager.dismissUpdate();
     setShowUpdate(false);
-    // Show again in 1 hour if not updated
-    setTimeout(() => setShowUpdate(true), 60 * 60 * 1000);
+  };
+
+  const handleLater = () => {
+    updateManager.dismissUpdate(30 * 60 * 1000); // Remind in 30 minutes
+    setShowUpdate(false);
+  };
+
+  const handleRetry = () => {
+    setUpdateState(prev => ({ ...prev, error: null }));
+    updateManager.checkForUpdates();
   };
 
   if (!showUpdate) return null;
 
+  const getIcon = () => {
+    if (updateState.error) {
+      return <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />;
+    }
+    if (updateState.installing) {
+      return <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent" />;
+    }
+    if (updateState.ready) {
+      return <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />;
+    }
+    if (updateState.available) {
+      return <Download className="h-4 w-4 text-blue-600 dark:text-blue-400" />;
+    }
+    return null;
+  };
+
+  const getTitle = () => {
+    if (updateState.error) {
+      return 'Update Error';
+    }
+    if (updateState.installing) {
+      return 'Updating...';
+    }
+    if (updateState.ready) {
+      return 'Update Complete';
+    }
+    if (updateState.available) {
+      return 'Update Available';
+    }
+    return '';
+  };
+
+  const getMessage = () => {
+    if (updateState.error) {
+      return `${updateState.error}${!isOnline ? ' (You appear to be offline)' : ''}`;
+    }
+    if (updateState.installing) {
+      return 'Applying update, please wait...';
+    }
+    if (updateState.ready) {
+      return 'Update complete! The page will refresh shortly.';
+    }
+    if (updateState.available) {
+      return 'A new version of DayFuse is available! Update when ready.';
+    }
+    return '';
+  };
+
+  const getBorderColor = () => {
+    if (updateState.error) return 'border-red-200 dark:border-red-800';
+    if (updateState.installing) return 'border-amber-200 dark:border-amber-800';
+    if (updateState.ready) return 'border-green-200 dark:border-green-800';
+    return 'border-blue-200 dark:border-blue-800';
+  };
+
   return (
     <div className="fixed top-4 right-4 z-50 w-80">
-      <Card className="border-blue-200 dark:border-blue-800 shadow-lg">
+      <Card className={`shadow-lg transition-all duration-300 ${getBorderColor()}`}>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center justify-between text-base">
             <div className="flex items-center gap-2">
-              <Download className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              Update Available
+              {getIcon()}
+              <span>{getTitle()}</span>
+              {!isOnline && (
+                <WifiOff className="h-3 w-3 text-gray-400" title="Offline" />
+              )}
             </div>
-            <button
-              onClick={handleDismiss}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-            >
-              <X className="h-4 w-4" />
-            </button>
+            
+            {!updateState.installing && !updateState.ready && (
+              <button
+                onClick={handleDismiss}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                aria-label="Dismiss update notification"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </CardTitle>
         </CardHeader>
+        
         <CardContent className="space-y-3">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            {updateMessage}
+            {getMessage()}
           </p>
-          <div className="flex gap-2">
-            <Button onClick={handleUpdate} size="sm" className="flex-1">
-              <RefreshCw className="h-3 w-3 mr-2" />
-              Update Now
-            </Button>
-            <Button onClick={handleDismiss} variant="outline" size="sm">
-              Later
-            </Button>
-          </div>
+          
+          {/* Network status indicator */}
+          {!isOnline && (
+            <div className="flex items-center gap-2 p-2 bg-amber-50 dark:bg-amber-900/20 rounded-md border border-amber-200 dark:border-amber-800">
+              <WifiOff className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              <span className="text-sm text-amber-700 dark:text-amber-300">
+                You're offline. Updates will be available when connected.
+              </span>
+            </div>
+          )}
+          
+          {/* Available update actions */}
+          {updateState.available && !updateState.installing && (
+            <div className="flex gap-2">
+              <Button 
+                onClick={handleUpdate} 
+                size="sm" 
+                className="flex-1"
+                disabled={!isOnline}
+              >
+                <RefreshCw className="h-3 w-3 mr-2" />
+                Update Now
+              </Button>
+              <Button onClick={handleLater} variant="outline" size="sm">
+                <Clock className="h-3 w-3 mr-1" />
+                30min
+              </Button>
+            </div>
+          )}
+          
+          {/* Error state actions */}
+          {updateState.error && (
+            <div className="flex gap-2">
+              <Button 
+                onClick={handleRetry} 
+                size="sm" 
+                variant="outline"
+                className="flex-1"
+                disabled={!isOnline}
+              >
+                <RefreshCw className="h-3 w-3 mr-2" />
+                Retry
+              </Button>
+              <Button onClick={handleDismiss} variant="ghost" size="sm">
+                Dismiss
+              </Button>
+            </div>
+          )}
+          
+          {/* Installing state */}
+          {updateState.installing && (
+            <div className="flex items-center justify-center py-2">
+              <div className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400">
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-amber-600 border-t-transparent" />
+                Applying update, please wait...
+              </div>
+            </div>
+          )}
+          
+          {/* Ready state */}
+          {updateState.ready && (
+            <div className="flex items-center justify-center py-2">
+              <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+                <CheckCircle2 className="h-4 w-4" />
+                Update complete! Refreshing shortly...
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
