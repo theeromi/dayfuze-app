@@ -53,8 +53,17 @@ export function AddTaskModal({ open, onOpenChange }: AddTaskModalProps) {
       });
       
       onOpenChange(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to add task:", error);
+      
+      // Show user-friendly error message
+      if (error.code === 'permission-denied') {
+        alert("Permission denied. Please check if Firestore is set up with proper security rules.");
+      } else if (error.code === 'unavailable') {
+        alert("Firebase is currently unavailable. Please try again in a moment.");
+      } else {
+        alert("Failed to add task. Please check your internet connection and try again.");
+      }
     } finally {
       setLoading(false);
     }
