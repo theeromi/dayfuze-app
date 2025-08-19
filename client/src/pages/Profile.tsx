@@ -7,7 +7,11 @@ import Header from '@/components/ui/Header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { User, Mail, Calendar, CheckSquare, Clock, Bell, BellOff } from 'lucide-react';
+import { User, Mail, Calendar, CheckSquare, Clock, Bell, BellOff, MessageCircle, Phone, Send, X } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Textarea } from '../components/ui/textarea';
 
 export default function Profile() {
   const { currentUser, loading: authLoading, handleLogout } = useAuth();
@@ -15,6 +19,22 @@ export default function Profile() {
   const { notificationsEnabled, requestPermission, scheduledNotifications } = useNotification();
   const [, navigate] = useLocation();
   const [loggingOut, setLoggingOut] = useState(false);
+  const [feedbackForm, setFeedbackForm] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: ''
+  });
+  const [contactForm, setContactForm] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: ''
+  });
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
+  const [feedbackSending, setFeedbackSending] = useState(false);
+  const [contactSending, setContactSending] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !currentUser) {
@@ -68,6 +88,78 @@ export default function Profile() {
     const taskDate = task.dueDate.toDate();
     return taskDate >= today && !task.completed;
   }).length;
+
+  // Initialize form with user data
+  useEffect(() => {
+    const userDisplayName = currentUser?.displayName || '';
+    const userEmail = currentUser?.email || '';
+    
+    setFeedbackForm(prev => ({
+      ...prev,
+      name: userDisplayName,
+      email: userEmail
+    }));
+    
+    setContactForm(prev => ({
+      ...prev,
+      name: userDisplayName,
+      email: userEmail
+    }));
+  }, [currentUser]);
+
+  const handleFeedbackSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFeedbackSending(true);
+    
+    try {
+      const subject = `DayFuse Feedback: ${feedbackForm.subject}`;
+      const body = `From: ${feedbackForm.name} (${feedbackForm.email})\n\nMessage:\n${feedbackForm.message}`;
+      const mailtoLink = `mailto:romaintomlinson@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      
+      window.open(mailtoLink, '_blank');
+      
+      // Reset form and close dialog
+      setFeedbackForm({
+        name: currentUser?.displayName || '',
+        email: currentUser?.email || '',
+        subject: '',
+        message: ''
+      });
+      setFeedbackOpen(false);
+    } catch (error) {
+      console.error('Error sending feedback:', error);
+      alert('Failed to open email client. Please try again.');
+    } finally {
+      setFeedbackSending(false);
+    }
+  };
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setContactSending(true);
+    
+    try {
+      const subject = `DayFuse Contact: ${contactForm.subject}`;
+      const body = `From: ${contactForm.name} (${contactForm.email})\n\nMessage:\n${contactForm.message}`;
+      const mailtoLink = `mailto:contact@romaintomlinson.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      
+      window.open(mailtoLink, '_blank');
+      
+      // Reset form and close dialog
+      setContactForm({
+        name: currentUser?.displayName || '',
+        email: currentUser?.email || '',
+        subject: '',
+        message: ''
+      });
+      setContactOpen(false);
+    } catch (error) {
+      console.error('Error sending contact email:', error);
+      alert('Failed to open email client. Please try again.');
+    } finally {
+      setContactSending(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -227,6 +319,224 @@ export default function Profile() {
                 <label className="text-sm font-medium text-muted-foreground">User ID</label>
                 <p className="text-base font-mono text-sm break-all">{currentUser.uid}</p>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Support Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Support & Feedback</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2">
+              {/* Feedback Dialog */}
+              <Dialog open={feedbackOpen} onOpenChange={setFeedbackOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full flex items-center gap-2 h-12"
+                    data-testid="button-feedback"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    Send Feedback
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Send Feedback</DialogTitle>
+                    <DialogDescription>
+                      Help us improve DayFuse by sharing your thoughts and suggestions.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={handleFeedbackSubmit} className="space-y-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="feedback-name">Name</Label>
+                      <Input
+                        id="feedback-name"
+                        value={feedbackForm.name}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
+                          setFeedbackForm(prev => ({ ...prev, name: e.target.value }))
+                        }
+                        required
+                        data-testid="input-feedback-name"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="feedback-email">Email</Label>
+                      <Input
+                        id="feedback-email"
+                        type="email"
+                        value={feedbackForm.email}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
+                          setFeedbackForm(prev => ({ ...prev, email: e.target.value }))
+                        }
+                        required
+                        data-testid="input-feedback-email"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="feedback-subject">Subject</Label>
+                      <Input
+                        id="feedback-subject"
+                        value={feedbackForm.subject}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
+                          setFeedbackForm(prev => ({ ...prev, subject: e.target.value }))
+                        }
+                        placeholder="Brief summary of your feedback"
+                        required
+                        data-testid="input-feedback-subject"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="feedback-message">Message</Label>
+                      <Textarea
+                        id="feedback-message"
+                        value={feedbackForm.message}
+                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => 
+                          setFeedbackForm(prev => ({ ...prev, message: e.target.value }))
+                        }
+                        placeholder="Tell us what you think..."
+                        rows={4}
+                        required
+                        data-testid="textarea-feedback-message"
+                      />
+                    </div>
+                    <div className="flex gap-2 pt-4">
+                      <Button
+                        type="submit"
+                        disabled={feedbackSending}
+                        className="flex-1 bg-day-blue hover:bg-day-blue/90"
+                        data-testid="button-send-feedback"
+                      >
+                        {feedbackSending ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                            Sending...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="h-4 w-4 mr-2" />
+                            Send Feedback
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setFeedbackOpen(false)}
+                        data-testid="button-cancel-feedback"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+
+              {/* Contact Dialog */}
+              <Dialog open={contactOpen} onOpenChange={setContactOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full flex items-center gap-2 h-12"
+                    data-testid="button-contact"
+                  >
+                    <Phone className="h-4 w-4" />
+                    Contact Support
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Contact Support</DialogTitle>
+                    <DialogDescription>
+                      Need help? Reach out to our support team for assistance.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={handleContactSubmit} className="space-y-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="contact-name">Name</Label>
+                      <Input
+                        id="contact-name"
+                        value={contactForm.name}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
+                          setContactForm(prev => ({ ...prev, name: e.target.value }))
+                        }
+                        required
+                        data-testid="input-contact-name"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="contact-email">Email</Label>
+                      <Input
+                        id="contact-email"
+                        type="email"
+                        value={contactForm.email}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
+                          setContactForm(prev => ({ ...prev, email: e.target.value }))
+                        }
+                        required
+                        data-testid="input-contact-email"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="contact-subject">Subject</Label>
+                      <Input
+                        id="contact-subject"
+                        value={contactForm.subject}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
+                          setContactForm(prev => ({ ...prev, subject: e.target.value }))
+                        }
+                        placeholder="What do you need help with?"
+                        required
+                        data-testid="input-contact-subject"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="contact-message">Message</Label>
+                      <Textarea
+                        id="contact-message"
+                        value={contactForm.message}
+                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => 
+                          setContactForm(prev => ({ ...prev, message: e.target.value }))
+                        }
+                        placeholder="Describe your issue or question..."
+                        rows={4}
+                        required
+                        data-testid="textarea-contact-message"
+                      />
+                    </div>
+                    <div className="flex gap-2 pt-4">
+                      <Button
+                        type="submit"
+                        disabled={contactSending}
+                        className="flex-1 bg-day-blue hover:bg-day-blue/90"
+                        data-testid="button-send-contact"
+                      >
+                        {contactSending ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                            Sending...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="h-4 w-4 mr-2" />
+                            Send Message
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setContactOpen(false)}
+                        data-testid="button-cancel-contact"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
             </div>
           </CardContent>
         </Card>
