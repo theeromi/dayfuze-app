@@ -1,5 +1,4 @@
 import { createRoot } from "react-dom/client";
-import QuoteDemo from "./QuoteDemo";
-import "./index.css";
+import StandaloneQuoteDemo from "./StandaloneQuoteDemo";
 
-createRoot(document.getElementById("root")!).render(<QuoteDemo />);
+createRoot(document.getElementById("root")!).render(<StandaloneQuoteDemo />);

@@ -1,6 +1,6 @@
-// Standalone Motivational Quote Demo - No external dependencies
-import { useState } from "react";
+import React, { useState } from "react";
 
+// Standalone Motivational Quote Demo - Zero External Dependencies
 const motivationalQuotes = [
   "Every small step forward is progress worth celebrating!",
   "You just turned intention into action. Well done!",
@@ -19,7 +19,7 @@ const motivationalQuotes = [
   "Building habits like a pro. Keep it up!"
 ];
 
-export default function QuoteDemo() {
+export default function StandaloneQuoteDemo() {
   const [completed, setCompleted] = useState(false);
   const [showQuote, setShowQuote] = useState(false);
   const [currentQuote, setCurrentQuote] = useState("");
@@ -41,77 +41,146 @@ export default function QuoteDemo() {
     }
   };
 
+  const appStyles: React.CSSProperties = {
+    minHeight: "100vh",
+    backgroundColor: "#f3f4f6",
+    padding: "2rem",
+    fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+  };
+
+  const headerStyles: React.CSSProperties = {
+    textAlign: "center",
+    marginBottom: "2rem"
+  };
+
+  const titleStyles: React.CSSProperties = {
+    fontSize: "2.5rem",
+    fontWeight: "bold",
+    color: "#1f2937",
+    marginBottom: "0.5rem",
+    margin: "0 0 0.5rem 0"
+  };
+
+  const subtitleStyles: React.CSSProperties = {
+    color: "#6b7280",
+    fontSize: "1.1rem",
+    margin: "0"
+  };
+
+  const cardStyles: React.CSSProperties = {
+    maxWidth: "28rem",
+    margin: "0 auto",
+    backgroundColor: "white",
+    borderRadius: "0.75rem",
+    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+    padding: "2rem",
+    marginTop: "2.5rem"
+  };
+
+  const cardTitleStyles: React.CSSProperties = {
+    fontSize: "1.25rem",
+    fontWeight: "600",
+    marginBottom: "1rem",
+    color: "#1f2937",
+    margin: "0 0 1rem 0"
+  };
+
+  const cardDescStyles: React.CSSProperties = {
+    color: "#6b7280",
+    marginBottom: "1.5rem",
+    lineHeight: "1.5",
+    margin: "0 0 1.5rem 0"
+  };
+
+  const buttonStyles: React.CSSProperties = {
+    padding: "0.75rem 1.5rem",
+    borderRadius: "0.5rem",
+    color: "white",
+    fontWeight: "500",
+    fontSize: "1rem",
+    border: "none",
+    cursor: completed ? "not-allowed" : "pointer",
+    backgroundColor: completed ? "#10b981" : "#3b82f6",
+    transition: "all 0.2s",
+    opacity: completed ? 0.8 : 1
+  };
+
+  const quoteOverlayStyles: React.CSSProperties = {
+    position: "fixed",
+    top: "1rem",
+    right: "1rem",
+    zIndex: 1000,
+    maxWidth: "20rem",
+    padding: "1rem",
+    borderRadius: "0.5rem",
+    border: "2px solid #10b981",
+    background: "linear-gradient(to bottom right, #ecfdf5, #d1fae5)",
+    boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+    transition: "all 0.3s ease",
+    opacity: showQuote ? 1 : 0,
+    transform: showQuote ? "translateY(0)" : "translateY(-0.5rem)"
+  };
+
+  const quoteContentStyles: React.CSSProperties = {
+    display: "flex",
+    alignItems: "flex-start",
+    gap: "0.75rem"
+  };
+
+  const iconContainerStyles: React.CSSProperties = {
+    flexShrink: 0,
+    marginTop: "0.25rem"
+  };
+
+  const quoteTextStyles: React.CSSProperties = {
+    fontSize: "0.875rem",
+    fontWeight: "500",
+    color: "#1f2937",
+    lineHeight: "1.4",
+    margin: "0"
+  };
+
+  const countStyles: React.CSSProperties = {
+    marginTop: "1rem",
+    fontSize: "0.875rem",
+    color: "#059669",
+    fontWeight: "500",
+    margin: "1rem 0 0 0"
+  };
+
   return (
-    <div style={{ 
-      minHeight: "100vh", 
-      backgroundColor: "#f3f4f6", 
-      padding: "2rem",
-      fontFamily: "system-ui, -apple-system, sans-serif"
-    }}>
+    <div style={appStyles}>
       {/* Header */}
-      <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-        <h1 style={{ 
-          fontSize: "2.5rem", 
-          fontWeight: "bold", 
-          color: "#1f2937", 
-          marginBottom: "0.5rem" 
-        }}>
+      <div style={headerStyles}>
+        <h1 style={titleStyles}>
           DayFuse - Motivational Quotes
         </h1>
-        <p style={{ color: "#6b7280", fontSize: "1.1rem" }}>
+        <p style={subtitleStyles}>
           Experience micro-motivational quotes for task completion
         </p>
       </div>
       
       {/* Task Card */}
-      <div style={{
-        maxWidth: "28rem",
-        margin: "0 auto",
-        backgroundColor: "white",
-        borderRadius: "0.75rem",
-        boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-        padding: "2rem",
-        marginTop: "2.5rem"
-      }}>
-        <h3 style={{ 
-          fontSize: "1.25rem", 
-          fontWeight: "600", 
-          marginBottom: "1rem",
-          color: "#1f2937"
-        }}>
+      <div style={cardStyles}>
+        <h3 style={cardTitleStyles}>
           Sample Task #{quoteCount + 1}
         </h3>
-        <p style={{ 
-          color: "#6b7280", 
-          marginBottom: "1.5rem",
-          lineHeight: "1.5"
-        }}>
+        <p style={cardDescStyles}>
           Complete this task to see a motivational quote appear with smooth animations!
         </p>
         
         <button 
           onClick={handleComplete}
           disabled={completed}
-          style={{
-            padding: "0.75rem 1.5rem",
-            borderRadius: "0.5rem",
-            color: "white",
-            fontWeight: "500",
-            fontSize: "1rem",
-            border: "none",
-            cursor: completed ? "not-allowed" : "pointer",
-            backgroundColor: completed ? "#10b981" : "#3b82f6",
-            transition: "all 0.2s",
-            opacity: completed ? 0.8 : 1
-          }}
+          style={buttonStyles}
           onMouseOver={(e) => {
             if (!completed) {
-              e.target.style.backgroundColor = "#2563eb";
+              (e.target as HTMLButtonElement).style.backgroundColor = "#2563eb";
             }
           }}
           onMouseOut={(e) => {
             if (!completed) {
-              e.target.style.backgroundColor = "#3b82f6";
+              (e.target as HTMLButtonElement).style.backgroundColor = "#3b82f6";
             }
           }}
         >
@@ -119,12 +188,7 @@ export default function QuoteDemo() {
         </button>
         
         {quoteCount > 0 && (
-          <p style={{
-            marginTop: "1rem",
-            fontSize: "0.875rem",
-            color: "#059669",
-            fontWeight: "500"
-          }}>
+          <p style={countStyles}>
             Tasks completed: {quoteCount} 🎉
           </p>
         )}
@@ -132,24 +196,10 @@ export default function QuoteDemo() {
       
       {/* Motivational Quote Overlay */}
       {showQuote && (
-        <div style={{
-          position: "fixed",
-          top: "1rem",
-          right: "1rem",
-          zIndex: 1000,
-          maxWidth: "20rem",
-          padding: "1rem",
-          borderRadius: "0.5rem",
-          border: "2px solid #10b981",
-          background: "linear-gradient(to bottom right, #ecfdf5, #d1fae5)",
-          boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
-          transition: "all 0.3s ease",
-          opacity: showQuote ? 1 : 0,
-          transform: showQuote ? "translateY(0)" : "translateY(-0.5rem)"
-        }}>
-          <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem" }}>
+        <div style={quoteOverlayStyles}>
+          <div style={quoteContentStyles}>
             {/* Star Icon */}
-            <div style={{ flexShrink: 0, marginTop: "0.25rem" }}>
+            <div style={iconContainerStyles}>
               <svg 
                 style={{ width: "1.25rem", height: "1.25rem", color: "#eab308" }}
                 fill="currentColor" 
@@ -158,46 +208,35 @@ export default function QuoteDemo() {
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
             </div>
-            <p style={{
-              fontSize: "0.875rem",
-              fontWeight: "500",
-              color: "#1f2937",
-              lineHeight: "1.4",
-              margin: 0
-            }}>
+            <p style={quoteTextStyles}>
               {currentQuote}
             </p>
           </div>
         </div>
       )}
       
-      {/* Feature Information Cards */}
-      <div style={{ 
-        maxWidth: "28rem", 
-        margin: "2rem auto 0",
-        display: "flex",
-        flexDirection: "column",
-        gap: "1rem"
-      }}>
-        {/* Overview Card */}
+      {/* Feature Information */}
+      <div style={{ maxWidth: "28rem", margin: "2rem auto 0" }}>
         <div style={{
           padding: "1rem",
           backgroundColor: "#eff6ff",
           borderRadius: "0.5rem",
-          border: "1px solid #bfdbfe"
+          border: "1px solid #bfdbfe",
+          marginBottom: "1rem"
         }}>
           <h4 style={{ 
             fontWeight: "600", 
             color: "#1e40af", 
             marginBottom: "0.5rem",
-            fontSize: "1rem"
+            fontSize: "1rem",
+            margin: "0 0 0.5rem 0"
           }}>
-            ✨ Feature Overview:
+            ✨ Micro-Motivational Quotes Feature:
           </h4>
           <ul style={{ 
             fontSize: "0.875rem", 
             color: "#1e40af", 
-            margin: 0,
+            margin: "0",
             paddingLeft: "1rem",
             lineHeight: "1.6"
           }}>
@@ -208,7 +247,6 @@ export default function QuoteDemo() {
           </ul>
         </div>
         
-        {/* Categories Card */}
         <div style={{
           padding: "1rem",
           backgroundColor: "#f0fdf4",
@@ -219,14 +257,15 @@ export default function QuoteDemo() {
             fontWeight: "600", 
             color: "#15803d", 
             marginBottom: "0.5rem",
-            fontSize: "1rem"
+            fontSize: "1rem",
+            margin: "0 0 0.5rem 0"
           }}>
-            🎯 Quote Categories:
+            🎯 Implementation Details:
           </h4>
           <ul style={{ 
             fontSize: "0.875rem", 
             color: "#15803d", 
-            margin: 0,
+            margin: "0",
             paddingLeft: "1rem",
             lineHeight: "1.6"
           }}>
