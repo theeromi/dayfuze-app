@@ -179,7 +179,7 @@ export default function Terms() {
                 <div>
                   <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Questions</h4>
                   <p className="text-gray-600 dark:text-gray-400">
-                    If you have questions about these terms, please contact us through the feedback form in your Profile page.
+                    If you have questions about these terms, please visit our <a href="/contact" className="text-blue-600 dark:text-blue-400 hover:underline">Contact page</a> or use the feedback form in your Profile page.
                   </p>
                 </div>
                 <div>

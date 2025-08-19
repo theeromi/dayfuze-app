@@ -14,6 +14,7 @@ import Timeline from '@/pages/Timeline';
 import Profile from '@/pages/Profile';
 import Privacy from '@/pages/Privacy';
 import Terms from '@/pages/Terms';
+import Contact from '@/pages/Contact';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -39,7 +40,7 @@ export default function App() {
                   <Route path="/profile" component={Profile} />
                   <Route path="/privacy" component={Privacy} />
                   <Route path="/terms" component={Terms} />
-                  <Route path="/contact" component={Profile} />
+                  <Route path="/contact" component={Contact} />
                   <Route path="/" component={Dashboard} />
                 </Switch>
               </div>

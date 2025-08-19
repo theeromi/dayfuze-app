@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Link } from 'wouter';
 import { Heart } from 'lucide-react';
 
@@ -39,7 +39,7 @@ export default function Footer({ className = '' }: FooterProps) {
                 Terms of Service
               </a>
             </Link>
-            <Link href="/profile">
+            <Link href="/contact">
               <a className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors">
                 Contact
               </a>

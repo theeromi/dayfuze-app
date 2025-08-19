@@ -170,7 +170,7 @@ export default function Privacy() {
                 <div>
                   <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Contact Us</h4>
                   <p className="text-gray-600 dark:text-gray-400">
-                    If you have questions about this Privacy Policy or want to exercise your rights, please contact us through the feedback form in your Profile page.
+                    If you have questions about this Privacy Policy or want to exercise your rights, please visit our <a href="/contact" className="text-blue-600 dark:text-blue-400 hover:underline">Contact page</a> or use the feedback form in your Profile page.
                   </p>
                 </div>
                 <div>
