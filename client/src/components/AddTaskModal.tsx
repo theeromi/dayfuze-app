@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Clock, Plus, Bell } from 'lucide-react';
+import { CalendarIcon, Clock, Plus, Bell, Send } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Timestamp } from 'firebase/firestore';
@@ -225,16 +225,19 @@ export default function AddTaskModal({ trigger, onSuccess }: AddTaskModalProps) 
             <Button
               type="submit"
               disabled={loading || !formData.title.trim()}
-              className="bg-day-blue hover:bg-day-blue/90 text-white px-8 py-3 text-base font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-base font-semibold shadow-lg hover:shadow-xl"
               data-testid="button-save-task"
             >
               {loading ? (
-                <div className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Adding Task...
-                </div>
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                  Adding...
+                </>
               ) : (
-                'Add Task'
+                <>
+                  <Send className="h-4 w-4 mr-2" />
+                  Add Task
+                </>
               )}
             </Button>
           </div>

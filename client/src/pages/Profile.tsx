@@ -416,19 +416,19 @@ export default function Profile() {
                       <Button
                         type="submit"
                         disabled={feedbackSending}
-                        className="flex-1 bg-day-blue hover:bg-day-blue/90 text-white px-8 py-3 text-base font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-base font-semibold shadow-lg hover:shadow-xl"
                         data-testid="button-send-feedback"
                       >
                         {feedbackSending ? (
-                          <div className="flex items-center gap-2">
-                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
-                            Sending Feedback...
-                          </div>
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                            Sending...
+                          </>
                         ) : (
-                          <div className="flex items-center gap-2">
-                            <Send className="h-4 w-4" />
+                          <>
+                            <Send className="h-4 w-4 mr-2" />
                             Send Feedback
-                          </div>
+                          </>
                         )}
                       </Button>
                     </div>
@@ -522,19 +522,19 @@ export default function Profile() {
                       <Button
                         type="submit"
                         disabled={contactSending}
-                        className="flex-1 bg-day-blue hover:bg-day-blue/90 text-white px-8 py-3 text-base font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-base font-semibold shadow-lg hover:shadow-xl"
                         data-testid="button-send-contact"
                       >
                         {contactSending ? (
-                          <div className="flex items-center gap-2">
-                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
-                            Sending Message...
-                          </div>
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                            Sending...
+                          </>
                         ) : (
-                          <div className="flex items-center gap-2">
-                            <Send className="h-4 w-4" />
+                          <>
+                            <Send className="h-4 w-4 mr-2" />
                             Send Message
-                          </div>
+                          </>
                         )}
                       </Button>
                     </div>
