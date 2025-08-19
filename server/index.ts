@@ -43,12 +43,23 @@ app.use((req, res, next) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
-    res.status(status).json({ message });
-    throw err;
+    log(`Error ${status}: ${message}`);
+    
+    // In production, don't expose error details to client
+    if (process.env.NODE_ENV === 'production') {
+      res.status(status).json({ 
+        message: status === 500 ? "Internal Server Error" : message 
+      });
+    } else {
+      res.status(status).json({ message, stack: err.stack });
+    }
   });
 
   // Setup the full DayFuse application
-  if (app.get("env") === "development") {
+  const nodeEnv = process.env.NODE_ENV || 'development';
+  log(`Server starting in ${nodeEnv} mode`);
+  
+  if (nodeEnv === "development") {
     await setupVite(app, server);
   } else {
     serveStatic(app);
@@ -64,6 +75,10 @@ app.use((req, res, next) => {
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
-    log(`serving on port ${port}`);
+    log(`DayFuse server running on port ${port} in ${nodeEnv} mode`);
+    log(`Health check available at http://0.0.0.0:${port}/api/health`);
+  }).on('error', (err: Error) => {
+    log(`Failed to start server: ${err.message}`);
+    process.exit(1);
   });
 })();
