@@ -184,6 +184,11 @@ export function AddTaskModal({ open, onOpenChange }: AddTaskModalProps) {
               className="w-full rounded-xl"
               data-testid="input-due-time"
             />
+            {formData.dueTime && (
+              <p className="text-xs text-muted-foreground mt-1">
+                💡 You'll receive a push notification at this time
+              </p>
+            )}
           </div>
 
           <Button

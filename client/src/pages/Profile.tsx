@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTask } from "@/contexts/TaskContext";
+import { NotificationSettings } from "@/components/NotificationSettings";
 import { updateProfile } from "firebase/auth";
 import { useLocation } from "wouter";
 import { User, Mail, Calendar, CheckCircle, Clock, AlertCircle } from "lucide-react";
@@ -201,6 +202,9 @@ export default function Profile() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Notification Settings */}
+          <NotificationSettings />
 
           {/* Settings */}
           <Card>

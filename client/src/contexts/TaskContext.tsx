@@ -13,6 +13,7 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "./AuthContext";
+import NotificationManager from "@/lib/notifications";
 
 export interface Task {
   id: string;
@@ -98,7 +99,7 @@ export function TaskProvider({ children }: TaskProviderProps) {
 
     try {
       const tasksRef = collection(db, `users/${currentUser.uid}/tasks`);
-      await addDoc(tasksRef, {
+      const docRef = await addDoc(tasksRef, {
         title: taskData.title,
         description: taskData.description,
         priority: taskData.priority,
@@ -108,6 +109,17 @@ export function TaskProvider({ children }: TaskProviderProps) {
         dueTime: taskData.dueTime,
         createdAt: serverTimestamp(),
       });
+
+      // Schedule notification if dueTime is provided
+      if (taskData.dueTime && Notification.permission === 'granted') {
+        await NotificationManager.scheduleTaskReminder({
+          taskId: docRef.id,
+          title: taskData.title,
+          body: taskData.description,
+          dueTime: taskData.dueTime
+        });
+        console.log(`Scheduled reminder for "${taskData.title}" at ${taskData.dueTime}`);
+      }
     } catch (error) {
       console.error("Error adding task:", error);
       throw error;
@@ -138,6 +150,9 @@ export function TaskProvider({ children }: TaskProviderProps) {
     try {
       const taskRef = doc(db, `users/${currentUser.uid}/tasks`, id);
       await deleteDoc(taskRef);
+      
+      // Cancel any pending notifications for this task
+      await NotificationManager.cancelTaskReminder(id);
     } catch (error) {
       console.error("Error deleting task:", error);
       throw error;
