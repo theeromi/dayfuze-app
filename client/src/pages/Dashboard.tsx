@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTask } from '@/contexts/TaskContext';
 import { useLocation } from 'wouter';
+import { WelcomeMessageGenerator, WelcomeMessage } from '@/lib/welcomeMessage';
 import Header from '@/components/ui/Header';
 import Footer from '@/components/ui/Footer';
 import TaskSummary from '@/components/ui/TaskSummary';
@@ -17,12 +18,43 @@ export default function Dashboard() {
   const { tasks, loading: tasksLoading } = useTask();
   const [, navigate] = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
+  const [welcomeMessage, setWelcomeMessage] = useState<WelcomeMessage | null>(null);
+  const [loadingWelcome, setLoadingWelcome] = useState(true);
 
   useEffect(() => {
     if (!authLoading && !currentUser) {
       navigate('/login');
     }
   }, [currentUser, authLoading, navigate]);
+
+  // Generate personalized welcome message
+  useEffect(() => {
+    const generateWelcomeMessage = async () => {
+      if (currentUser && !authLoading) {
+        setLoadingWelcome(true);
+        try {
+          const message = await WelcomeMessageGenerator.generateWelcomeMessage(
+            currentUser.uid,
+            currentUser.displayName || undefined
+          );
+          setWelcomeMessage(message);
+        } catch (error) {
+          console.error('Error generating welcome message:', error);
+          // Fallback message
+          setWelcomeMessage({
+            greeting: `Good day, ${currentUser.displayName || 'there'}!`,
+            message: "Ready to make today productive? Let's get started! 🚀",
+            timeBasedGreeting: "Good day",
+            joinMessage: "Welcome to DayFuse! Let's organize your day! 📅"
+          });
+        } finally {
+          setLoadingWelcome(false);
+        }
+      }
+    };
+
+    generateWelcomeMessage();
+  }, [currentUser, authLoading]);
 
   if (authLoading || tasksLoading) {
     return (
@@ -46,12 +78,38 @@ export default function Dashboard() {
       <Header />
       
       <main className="container mx-auto px-4 py-6 space-y-8">
-        {/* Welcome Section */}
-        <div className="space-y-2">
-          <h2 className="text-lg text-muted-foreground">Good day,</h2>
-          <h1 className="text-4xl font-bold text-foreground" data-testid="text-welcome">
-            {displayName}!
-          </h1>
+        {/* Personalized Welcome Section */}
+        <div className="space-y-4">
+          {loadingWelcome ? (
+            <div className="space-y-2">
+              <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-32 animate-pulse"></div>
+              <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-64 animate-pulse"></div>
+            </div>
+          ) : welcomeMessage ? (
+            <>
+              <div className="space-y-2">
+                <h2 className="text-lg text-muted-foreground">{welcomeMessage.timeBasedGreeting.split(' ')[0]},</h2>
+                <h1 className="text-4xl font-bold text-foreground" data-testid="text-welcome">
+                  {currentUser?.displayName?.split(' ')[0] || 'there'}!
+                </h1>
+                <p className="text-lg text-muted-foreground">
+                  {welcomeMessage.message}
+                </p>
+              </div>
+              <div className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-950 dark:to-green-950 p-4 rounded-lg border border-blue-200 dark:border-blue-800 max-w-2xl">
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  {welcomeMessage.joinMessage}
+                </p>
+              </div>
+            </>
+          ) : (
+            <div className="space-y-2">
+              <h2 className="text-lg text-muted-foreground">Good day,</h2>
+              <h1 className="text-4xl font-bold text-foreground" data-testid="text-welcome">
+                {displayName}!
+              </h1>
+            </div>
+          )}
         </div>
 
         {/* Navigation Cards */}

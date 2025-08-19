@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, User, updateProfile } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { auth, db } from '@/lib/firebase';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -37,6 +38,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (name && userCredential.user) {
           await updateProfile(userCredential.user, {
             displayName: name
+          });
+          
+          // Store user profile with first login time
+          const userDocRef = doc(db, 'users', userCredential.user.uid);
+          await setDoc(userDocRef, {
+            firstLoginTime: serverTimestamp(),
+            displayName: name,
+            email: email,
+            createdAt: serverTimestamp()
           });
         }
       }
