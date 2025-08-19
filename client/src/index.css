@@ -154,6 +154,44 @@
   }
 }
 
+/* Theme customization CSS custom properties */
+:root {
+  --color-primary: #2563eb;
+  --color-secondary: #1e40af;
+  --color-accent: #3b82f6;
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
+  --color-text: #1e293b;
+  --color-text-secondary: #64748b;
+}
+
+/* Apply theme colors */
+.theme-primary {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.theme-surface {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+}
+
+.theme-background {
+  background-color: var(--color-background);
+}
+
+.theme-text {
+  color: var(--color-text);
+}
+
+.theme-text-secondary {
+  color: var(--color-text-secondary);
+}
+
+.theme-accent {
+  color: var(--color-accent);
+}
+
 /* Custom animations for the FAB and quick add */
 @keyframes fade-in {
   from {

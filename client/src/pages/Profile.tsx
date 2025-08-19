@@ -8,9 +8,10 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTask } from "@/contexts/TaskContext";
 import { NotificationSettings } from "@/components/NotificationSettings";
+// import { ThemeCustomizer } from "@/components/ThemeCustomizer";
 import { updateProfile } from "firebase/auth";
 import { useLocation } from "wouter";
-import { User, Mail, Calendar, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import { User, Mail, Calendar, CheckCircle, Clock, AlertCircle, Palette } from "lucide-react";
 
 export default function Profile() {
   const { currentUser, handleLogout } = useAuth();
@@ -20,6 +21,7 @@ export default function Profile() {
   const [editing, setEditing] = useState(false);
   const [displayName, setDisplayName] = useState(currentUser?.displayName || "");
   const [loading, setLoading] = useState(false);
+  const [activeSection, setActiveSection] = useState<'profile' | 'notifications' | 'themes'>('profile');
 
   const completedTasks = tasks.filter(task => task.completed);
   const pendingTasks = tasks.filter(task => !task.completed);
@@ -76,9 +78,47 @@ export default function Profile() {
           <p className="text-gray-600">Manage your account and view statistics</p>
         </section>
 
+        {/* Section Navigation */}
+        <section className="px-4 mb-6">
+          <div className="flex space-x-2 bg-white rounded-lg p-1 shadow-sm">
+            <Button
+              variant={activeSection === 'profile' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveSection('profile')}
+              className="flex-1"
+              data-testid="button-profile-tab"
+            >
+              <User className="w-4 h-4 mr-2" />
+              Profile
+            </Button>
+            <Button
+              variant={activeSection === 'notifications' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveSection('notifications')}
+              className="flex-1"
+              data-testid="button-notifications-tab"
+            >
+              <CheckCircle className="w-4 h-4 mr-2" />
+              Notifications
+            </Button>
+            <Button
+              variant={activeSection === 'themes' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveSection('themes')}
+              className="flex-1"
+              data-testid="button-themes-tab"
+            >
+              <Palette className="w-4 h-4 mr-2" />
+              Themes
+            </Button>
+          </div>
+        </section>
+
         <section className="px-4 space-y-6">
           {/* Profile Information */}
-          <Card>
+          {activeSection === 'profile' && (
+            <>
+              <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <User className="w-5 h-5" />
@@ -163,8 +203,8 @@ export default function Profile() {
             </CardContent>
           </Card>
 
-          {/* Task Statistics */}
-          <Card>
+              {/* Task Statistics */}
+              <Card>
             <CardHeader>
               <CardTitle>Task Statistics</CardTitle>
             </CardHeader>
@@ -203,11 +243,8 @@ export default function Profile() {
             </CardContent>
           </Card>
 
-          {/* Notification Settings */}
-          <NotificationSettings />
-
-          {/* Settings */}
-          <Card>
+              {/* Settings */}
+              <Card>
             <CardHeader>
               <CardTitle>Settings</CardTitle>
             </CardHeader>
@@ -222,6 +259,37 @@ export default function Profile() {
               </Button>
             </CardContent>
           </Card>
+            </>
+          )}
+
+          {/* Notification Settings Section */}
+          {activeSection === 'notifications' && (
+            <NotificationSettings />
+          )}
+
+          {/* Theme Customizer Section */}
+          {activeSection === 'themes' && (
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Palette className="w-5 h-5" />
+                    <span>Theme Customizer</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 mb-4">Theme customization is being set up. Coming soon!</p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {['Blue', 'Green', 'Purple', 'Rose', 'Amber', 'Dark'].map((theme) => (
+                      <div key={theme} className="p-3 rounded-lg border bg-gray-50 text-center">
+                        <div className="text-sm font-medium">{theme} Theme</div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </section>
       </main>
     </div>
