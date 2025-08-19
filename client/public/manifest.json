@@ -1,62 +1,81 @@
 {
-  "name": "DayFuse - Task Management",
+  "name": "DayFuse - Productivity App",
   "short_name": "DayFuse",
-  "description": "A productivity-focused task management app",
+  "description": "A comprehensive task management and productivity app with real-time sync and personalized features",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#5B7FFF",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "lifestyle", "business"],
+  "lang": "en-US",
+  "dir": "ltr",
+  "scope": "/",
   "icons": [
     {
-      "src": "icon-72x72.svg",
+      "src": "/icon-72x72.svg",
       "sizes": "72x72",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     },
     {
-      "src": "icon-96x96.png",
-      "sizes": "96x96",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icon-128x128.png",
-      "sizes": "128x128",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icon-144x144.png",
-      "sizes": "144x144",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icon-152x152.png",
-      "sizes": "152x152",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icon-192x192.svg",
+      "src": "/icon-192x192.svg",
       "sizes": "192x192",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     },
     {
-      "src": "icon-384x384.png",
-      "sizes": "384x384",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icon-512x512.svg",
+      "src": "/icon-512x512.svg",
       "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     }
   ],
-  "permissions": [
-    "notifications"
-  ]
+  "screenshots": [
+    {
+      "src": "/screenshots/desktop-home.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "DayFuse Dashboard"
+    },
+    {
+      "src": "/screenshots/mobile-tasks.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Task Management"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Add Task",
+      "short_name": "Add Task",
+      "description": "Quickly add a new task",
+      "url": "/tasks?action=add",
+      "icons": [
+        {
+          "src": "/icons/shortcut-add.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "View Timeline",
+      "short_name": "Timeline",
+      "description": "View your task timeline",
+      "url": "/timeline",
+      "icons": [
+        {
+          "src": "/icons/shortcut-timeline.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
 }

@@ -2,17 +2,20 @@ import React, { useState } from 'react';
 import { Calendar, Clock, Star, Edit, Trash2, Check } from 'lucide-react';
 import { format } from 'date-fns';
 
+import { Timestamp } from 'firebase/firestore';
+
 export interface Task {
   id: string;
   title: string;
   description?: string;
   completed: boolean;
   priority: 'low' | 'medium' | 'high';
-  dueDate?: Date;
+  dueDate: Timestamp;
   dueTime?: string;
   tags?: string[];
-  createdAt: Date;
-  completedAt?: Date;
+  createdAt: Timestamp;
+  completedAt?: Timestamp;
+  status: 'todo' | 'progress' | 'done';
 }
 
 interface TaskCardProps {
@@ -41,7 +44,7 @@ export function TaskCard({ task, onToggle, onEdit, onDelete }: TaskCardProps) {
     onToggle(task.id);
   };
 
-  const isOverdue = task.dueDate && !task.completed && new Date() > task.dueDate;
+  const isOverdue = task.dueDate && !task.completed && new Date() > task.dueDate.toDate();
 
   return (
     <div
@@ -91,7 +94,7 @@ export function TaskCard({ task, onToggle, onEdit, onDelete }: TaskCardProps) {
                 isOverdue ? 'text-red-600' : 'text-gray-500'
               }`}>
                 <Calendar size={12} />
-                {format(task.dueDate, 'MMM d')}
+                {format(task.dueDate.toDate(), 'MMM d')}
               </span>
             )}
 
@@ -138,7 +141,7 @@ export function TaskCard({ task, onToggle, onEdit, onDelete }: TaskCardProps) {
 
       {task.completed && task.completedAt && (
         <div className="mt-2 text-xs text-gray-500">
-          Completed {format(task.completedAt, 'MMM d, h:mm a')}
+          Completed {task.completedAt ? format(task.completedAt.toDate(), 'MMM d, h:mm a') : ''}
         </div>
       )}
     </div>

@@ -10,7 +10,7 @@ export function VoiceInput({ onResult, onClose }: VoiceInputProps) {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [error, setError] = useState('');
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<any>(null);
 
   const startListening = () => {
     if (typeof window === 'undefined') {
@@ -35,7 +35,7 @@ export function VoiceInput({ onResult, onClose }: VoiceInputProps) {
       setError('');
     };
 
-    recognition.onresult = (event) => {
+    recognition.onresult = (event: any) => {
       let finalTranscript = '';
       let interimTranscript = '';
 
@@ -51,7 +51,7 @@ export function VoiceInput({ onResult, onClose }: VoiceInputProps) {
       setTranscript(finalTranscript + interimTranscript);
     };
 
-    recognition.onerror = (event) => {
+    recognition.onerror = (event: any) => {
       setError(`Speech recognition error: ${event.error}`);
       setIsListening(false);
     };

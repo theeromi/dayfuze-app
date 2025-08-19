@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { useTask } from '../contexts/TaskContext';
 import { TaskCard, Task } from './TaskCard';
 import { MotivationalQuote } from './MotivationalQuote';
-import { AddTaskModal } from './AddTaskModal';
+import AddTaskModal from './AddTaskModal';
 
 export function TaskList() {
-  const { tasks, toggleTask, deleteTask } = useTask();
+  const { tasks, toggleTaskCompletion, deleteTask } = useTask();
   const [showQuote, setShowQuote] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
@@ -15,7 +15,7 @@ export function TaskList() {
       // Task just completed, show motivational quote
       setShowQuote(true);
     }
-    await toggleTask(taskId);
+    await toggleTaskCompletion(taskId);
   };
 
   // Show recent tasks (limit to 5 for dashboard)
@@ -61,11 +61,12 @@ export function TaskList() {
         onHide={() => setShowQuote(false)} 
       />
 
-      <AddTaskModal
-        isOpen={!!editingTask}
-        onClose={() => setEditingTask(null)}
-        editingTask={editingTask}
-      />
+      {editingTask && (
+        <AddTaskModal
+          trigger={null}
+          onSuccess={() => setEditingTask(null)}
+        />
+      )}
     </div>
   );
 }
