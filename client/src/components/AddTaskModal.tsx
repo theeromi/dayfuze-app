@@ -225,7 +225,7 @@ export default function AddTaskModal({ trigger, onSuccess }: AddTaskModalProps) 
             <Button
               type="submit"
               disabled={loading || !formData.title.trim()}
-              className="bg-day-blue hover:bg-day-blue/90 px-8 py-3 text-base font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+              className="bg-day-blue hover:bg-day-blue/90 text-white px-8 py-3 text-base font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
               data-testid="button-save-task"
             >
               {loading ? (

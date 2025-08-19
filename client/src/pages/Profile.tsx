@@ -416,7 +416,7 @@ export default function Profile() {
                       <Button
                         type="submit"
                         disabled={feedbackSending}
-                        className="flex-1 bg-day-blue hover:bg-day-blue/90 px-8 py-3 text-base font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                        className="flex-1 bg-day-blue hover:bg-day-blue/90 text-white px-8 py-3 text-base font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
                         data-testid="button-send-feedback"
                       >
                         {feedbackSending ? (
@@ -522,7 +522,7 @@ export default function Profile() {
                       <Button
                         type="submit"
                         disabled={contactSending}
-                        className="flex-1 bg-day-blue hover:bg-day-blue/90 px-8 py-3 text-base font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                        className="flex-1 bg-day-blue hover:bg-day-blue/90 text-white px-8 py-3 text-base font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
                         data-testid="button-send-contact"
                       >
                         {contactSending ? (
