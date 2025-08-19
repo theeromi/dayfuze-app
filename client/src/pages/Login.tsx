@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from '../components/ui/label';
 import { useLocation } from 'wouter';
 import { Loader2, Bell, Eye, EyeOff } from 'lucide-react';
+import Footer from '../components/ui/Footer';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -45,7 +46,8 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-day-blue via-primary to-fuse-orange p-4 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-day-blue via-primary to-fuse-orange relative overflow-hidden">
+      <div className="flex-1 flex items-center justify-center p-4">
       {/* Animated background elements */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-white rounded-full animate-pulse"></div>
@@ -146,7 +148,7 @@ export default function Login() {
           <CardFooter className="flex flex-col space-y-4">
             <Button 
               type="submit" 
-              className="w-full bg-day-blue hover:bg-day-blue/90 active:scale-95 transition-all duration-200 h-12 text-lg font-semibold"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white active:scale-95 transition-all duration-200 h-12 text-lg font-semibold shadow-lg"
               disabled={loading}
               data-testid="button-submit"
             >
@@ -158,7 +160,7 @@ export default function Login() {
             
             <Button
               type="button"
-              variant="link"
+              variant="outline"
               onClick={() => {
                 setIsLogin(!isLogin);
                 setError('');
@@ -166,7 +168,7 @@ export default function Login() {
                 setEmail('');
                 setPassword('');
               }}
-              className="w-full text-day-blue hover:text-day-blue/80 active:scale-95 transition-all duration-200"
+              className="w-full text-blue-600 border-blue-600 hover:bg-blue-50 active:scale-95 transition-all duration-200 h-12 text-base font-medium"
               data-testid="button-toggle-auth"
             >
               {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
@@ -174,6 +176,9 @@ export default function Login() {
           </CardFooter>
         </form>
       </Card>
+      </div>
+      
+      <Footer />
     </div>
   );
 }
