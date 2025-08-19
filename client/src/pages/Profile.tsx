@@ -13,6 +13,7 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { ThemeToggle } from '../components/ThemeToggle';
+import Footer from '../components/ui/Footer';
 
 export default function Profile() {
   const { currentUser, loading: authLoading, handleLogout } = useAuth();
@@ -688,6 +689,8 @@ export default function Profile() {
           </Button>
         </div>
       </main>
+      
+      <Footer />
     </div>
   );
 }

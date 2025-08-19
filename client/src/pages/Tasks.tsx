@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTask, Task } from '@/contexts/TaskContext';
 import { useLocation } from 'wouter';
 import Header from '@/components/ui/Header';
+import Footer from '@/components/ui/Footer';
 import SearchBar from '@/components/ui/SearchBar';
 import CategoryFilters, { FilterType } from '@/components/ui/CategoryFilters';
 import AddTaskModal from '@/components/AddTaskModal';
@@ -270,6 +271,8 @@ export default function Tasks() {
           )}
         </div>
       </main>
+      
+      <Footer />
     </div>
   );
 }

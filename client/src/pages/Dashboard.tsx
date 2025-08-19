@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTask } from '@/contexts/TaskContext';
 import { useLocation } from 'wouter';
 import Header from '@/components/ui/Header';
+import Footer from '@/components/ui/Footer';
 import TaskSummary from '@/components/ui/TaskSummary';
 import SearchBar from '@/components/ui/SearchBar';
 import TodaysTasksHorizontal from '@/components/ui/TodaysTasksHorizontal';
@@ -127,6 +128,8 @@ export default function Dashboard() {
           </Button>
         </div>
       </main>
+      
+      <Footer />
     </div>
   );
 }
