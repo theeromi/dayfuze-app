@@ -7,7 +7,7 @@ import Header from '../components/ui/Header';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
-import { User, Mail, Calendar, CheckSquare, Clock, Bell, BellOff, MessageCircle, Phone, Send, X } from 'lucide-react';
+import { User, Mail, Calendar, CheckSquare, Clock, Bell, BellOff, MessageCircle, Phone, Send, X, Lock, Trash2, AlertTriangle } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -16,7 +16,7 @@ import { ThemeToggle } from '../components/ThemeToggle';
 import Footer from '../components/ui/Footer';
 
 export default function Profile() {
-  const { currentUser, loading: authLoading, handleLogout } = useAuth();
+  const { currentUser, loading: authLoading, handleLogout, changePassword, deleteAccount } = useAuth();
   const { tasks, loading: tasksLoading } = useTask();
   const { notificationsEnabled, requestPermission, scheduledNotifications } = useNotification();
   const [, navigate] = useLocation();
@@ -38,6 +38,20 @@ export default function Profile() {
   const [feedbackSending, setFeedbackSending] = useState(false);
   const [contactSending, setContactSending] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
+  
+  // Password management states
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [passwordChanging, setPasswordChanging] = useState(false);
+  
+  // Account deletion states
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !currentUser) {
@@ -93,6 +107,65 @@ export default function Profile() {
       } else {
         alert('Please allow notifications in your browser settings to receive task reminders.');
       }
+    }
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      alert('New passwords do not match');
+      return;
+    }
+    
+    if (passwordForm.newPassword.length < 6) {
+      alert('Password must be at least 6 characters');
+      return;
+    }
+
+    setPasswordChanging(true);
+    try {
+      await changePassword(passwordForm.currentPassword, passwordForm.newPassword);
+      alert('Password changed successfully!');
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setPasswordDialogOpen(false);
+    } catch (error: any) {
+      console.error('Password change error:', error);
+      if (error.code === 'auth/wrong-password') {
+        alert('Current password is incorrect');
+      } else if (error.code === 'auth/weak-password') {
+        alert('Password is too weak');
+      } else {
+        alert('Failed to change password. Please try again.');
+      }
+    } finally {
+      setPasswordChanging(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!deletePassword) {
+      alert('Please enter your password to confirm account deletion');
+      return;
+    }
+
+    const confirmed = confirm('Are you absolutely sure you want to delete your account? This action cannot be undone and will permanently delete all your tasks and data.');
+    if (!confirmed) return;
+
+    setDeleting(true);
+    try {
+      await deleteAccount(deletePassword);
+      alert('Account deleted successfully');
+      // User will be automatically logged out
+    } catch (error: any) {
+      console.error('Account deletion error:', error);
+      if (error.code === 'auth/wrong-password') {
+        alert('Password is incorrect');
+      } else {
+        alert('Failed to delete account. Please try again.');
+      }
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -391,10 +464,10 @@ export default function Profile() {
           </Card>
         </div>
 
-        {/* Account Information */}
+        {/* Account Information & Security */}
         <Card>
           <CardHeader>
-            <CardTitle>Account Information</CardTitle>
+            <CardTitle>Account Information & Security</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
@@ -423,6 +496,181 @@ export default function Profile() {
               <div>
                 <label className="text-sm font-medium text-muted-foreground">User ID</label>
                 <p className="text-base font-mono text-sm break-all">{currentUser.uid}</p>
+              </div>
+            </div>
+
+            {/* Password Change Section */}
+            <div className="mt-6 pt-6 border-t border-border">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-medium">Password</h3>
+                  <p className="text-sm text-muted-foreground">Change your account password</p>
+                </div>
+                <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" data-testid="button-change-password">
+                      <Lock className="h-4 w-4 mr-2" />
+                      Change Password
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Change Password</DialogTitle>
+                      <DialogDescription>
+                        Enter your current password and choose a new one.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handlePasswordChange} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="currentPassword">Current Password</Label>
+                        <Input
+                          id="currentPassword"
+                          type="password"
+                          value={passwordForm.currentPassword}
+                          onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
+                          required
+                          data-testid="input-current-password"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="newPassword">New Password</Label>
+                        <Input
+                          id="newPassword"
+                          type="password"
+                          value={passwordForm.newPassword}
+                          onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                          required
+                          minLength={6}
+                          data-testid="input-new-password"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                        <Input
+                          id="confirmPassword"
+                          type="password"
+                          value={passwordForm.confirmPassword}
+                          onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                          required
+                          minLength={6}
+                          data-testid="input-confirm-password"
+                        />
+                      </div>
+                      <div className="flex justify-end space-x-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setPasswordDialogOpen(false)}
+                          data-testid="button-cancel-password"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          type="submit"
+                          disabled={passwordChanging}
+                          data-testid="button-save-password"
+                        >
+                          {passwordChanging ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                              Changing...
+                            </>
+                          ) : (
+                            <>
+                              <Lock className="h-4 w-4 mr-2" />
+                              Change Password
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </div>
+
+            {/* Account Deletion Section */}
+            <div className="mt-6 pt-6 border-t border-border">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-medium text-red-600 dark:text-red-400">Delete Account</h3>
+                  <p className="text-sm text-muted-foreground">Permanently delete your account and all data</p>
+                </div>
+                <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="destructive" size="sm" data-testid="button-delete-account">
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete Account
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <AlertTriangle className="h-5 w-5 text-red-500" />
+                        Delete Account
+                      </DialogTitle>
+                      <DialogDescription>
+                        This action cannot be undone. This will permanently delete your account and remove all your tasks, data, and settings.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div className="p-4 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200 dark:border-red-800">
+                        <p className="text-sm text-red-700 dark:text-red-300 font-medium">
+                          Warning: This will permanently delete:
+                        </p>
+                        <ul className="text-sm text-red-600 dark:text-red-400 mt-2 ml-4 list-disc">
+                          <li>All your tasks and recurring reminders</li>
+                          <li>Your account settings and preferences</li>
+                          <li>All notification schedules</li>
+                          <li>Your profile information</li>
+                        </ul>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="deletePassword">Enter your password to confirm</Label>
+                        <Input
+                          id="deletePassword"
+                          type="password"
+                          value={deletePassword}
+                          onChange={(e) => setDeletePassword(e.target.value)}
+                          placeholder="Enter your password"
+                          required
+                          data-testid="input-delete-password"
+                        />
+                      </div>
+                      <div className="flex justify-end space-x-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setDeleteDialogOpen(false);
+                            setDeletePassword('');
+                          }}
+                          data-testid="button-cancel-delete"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          onClick={handleDeleteAccount}
+                          disabled={deleting || !deletePassword}
+                          data-testid="button-confirm-delete"
+                        >
+                          {deleting ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                              Deleting...
+                            </>
+                          ) : (
+                            <>
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete Account
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
           </CardContent>

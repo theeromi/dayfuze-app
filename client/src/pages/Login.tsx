@@ -6,7 +6,7 @@ import { Input } from '../components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
 import { Label } from '../components/ui/label';
 import { useLocation } from 'wouter';
-import { Loader2, Bell, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Bell, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import Footer from '../components/ui/Footer';
 
 export default function Login() {
@@ -17,7 +17,10 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { currentUser, handleAuth } = useAuth();
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetSending, setResetSending] = useState(false);
+  const { currentUser, handleAuth, sendPasswordReset } = useAuth();
   const { notificationsEnabled, requestPermission } = useNotification();
   const [, navigate] = useLocation();
 
@@ -42,6 +45,32 @@ export default function Login() {
       setError(err.message || 'Authentication failed');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetEmail) {
+      setError('Please enter your email address');
+      return;
+    }
+
+    setResetSending(true);
+    setError('');
+    
+    try {
+      await sendPasswordReset(resetEmail);
+      alert('Password reset email sent! Check your inbox.');
+      setShowForgotPassword(false);
+      setResetEmail('');
+    } catch (err: any) {
+      if (err.code === 'auth/user-not-found') {
+        setError('No account found with this email address');
+      } else {
+        setError('Failed to send password reset email. Please try again.');
+      }
+    } finally {
+      setResetSending(false);
     }
   };
 
@@ -143,37 +172,110 @@ export default function Login() {
                 <span>Enable notifications to get task reminders</span>
               </div>
             )}
+
+            {/* Forgot Password Link */}
+            {isLogin && !showForgotPassword && (
+              <div className="text-center">
+                <Button
+                  type="button"
+                  variant="link"
+                  className="text-sm text-blue-600 hover:text-blue-800 p-0"
+                  onClick={() => setShowForgotPassword(true)}
+                  data-testid="button-forgot-password"
+                >
+                  Forgot your password?
+                </Button>
+              </div>
+            )}
           </CardContent>
           
-          <CardFooter className="flex flex-col space-y-4">
-            <Button 
-              type="submit" 
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white active:scale-95 transition-all duration-200 h-12 text-lg font-semibold shadow-lg"
-              disabled={loading}
-              data-testid="button-submit"
-            >
-              {loading ? (
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              ) : null}
-              {isLogin ? 'Sign In' : 'Sign Up'}
-            </Button>
-            
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                setIsLogin(!isLogin);
-                setError('');
-                setName('');
-                setEmail('');
-                setPassword('');
-              }}
-              className="w-full text-blue-600 border-blue-600 hover:bg-blue-50 active:scale-95 transition-all duration-200 h-12 text-base font-medium"
-              data-testid="button-toggle-auth"
-            >
-              {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
-            </Button>
-          </CardFooter>
+          {/* Password Reset Form */}
+          {showForgotPassword && (
+            <div className="px-6 pb-6 border-t border-gray-100">
+              <form onSubmit={handlePasswordReset} className="space-y-4 mt-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setShowForgotPassword(false);
+                      setResetEmail('');
+                      setError('');
+                    }}
+                    className="p-0 h-auto"
+                    data-testid="button-back-to-login"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                  <h3 className="font-medium">Reset Password</h3>
+                </div>
+                <p className="text-sm text-gray-600 mb-4">
+                  Enter your email address and we'll send you a link to reset your password.
+                </p>
+                <div className="space-y-2">
+                  <Label htmlFor="resetEmail">Email Address</Label>
+                  <Input
+                    id="resetEmail"
+                    type="email"
+                    placeholder="your.email@example.com"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    required
+                    className="transition-all duration-200 focus:ring-2 focus:ring-day-blue"
+                    data-testid="input-reset-email"
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  disabled={resetSending}
+                  data-testid="button-send-reset"
+                >
+                  {resetSending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    'Send Password Reset Email'
+                  )}
+                </Button>
+              </form>
+            </div>
+          )}
+          
+          {!showForgotPassword && (
+            <CardFooter className="flex flex-col space-y-4">
+              <Button 
+                type="submit" 
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white active:scale-95 transition-all duration-200 h-12 text-lg font-semibold shadow-lg"
+                disabled={loading}
+                data-testid="button-submit"
+              >
+                {loading ? (
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                ) : null}
+                {isLogin ? 'Sign In' : 'Sign Up'}
+              </Button>
+              
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setIsLogin(!isLogin);
+                  setError('');
+                  setName('');
+                  setEmail('');
+                  setPassword('');
+                }}
+                className="w-full text-blue-600 border-blue-600 hover:bg-blue-50 active:scale-95 transition-all duration-200 h-12 text-base font-medium"
+                data-testid="button-toggle-auth"
+              >
+                {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
+              </Button>
+            </CardFooter>
+          )}
         </form>
       </Card>
       </div>
