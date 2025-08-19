@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, User } from 'firebase/auth';
+import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, User, updateProfile } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
 interface AuthContextType {
   currentUser: User | null;
   loading: boolean;
-  handleAuth: (email: string, password: string, isLogin: boolean) => Promise<void>;
+  handleAuth: (email: string, password: string, isLogin: boolean, name?: string) => Promise<void>;
   handleLogout: () => Promise<void>;
 }
 
@@ -27,13 +27,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const handleAuth = async (email: string, password: string, isLogin: boolean) => {
+  const handleAuth = async (email: string, password: string, isLogin: boolean, name?: string) => {
     setLoading(true);
     try {
       if (isLogin) {
         await signInWithEmailAndPassword(auth, email, password);
       } else {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        if (name && userCredential.user) {
+          await updateProfile(userCredential.user, {
+            displayName: name
+          });
+        }
       }
     } catch (error) {
       console.error('Authentication error:', error);

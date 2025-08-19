@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotification } from '@/contexts/NotificationContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
+import { Label } from '../components/ui/label';
 import { useLocation } from 'wouter';
-import { Loader2, Bell } from 'lucide-react';
+import { Loader2, Bell, Eye, EyeOff } from 'lucide-react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const { currentUser, handleAuth } = useAuth();
   const { notificationsEnabled, requestPermission } = useNotification();
   const [, navigate] = useLocation();
@@ -30,7 +32,7 @@ export default function Login() {
     setError('');
 
     try {
-      await handleAuth(email, password, isLogin);
+      await handleAuth(email, password, isLogin, name);
       // Request notification permission after successful login
       if (!notificationsEnabled) {
         await requestPermission();
@@ -43,8 +45,15 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-day-blue via-primary to-fuse-orange p-4">
-      <Card className="w-full max-w-md shadow-2xl">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-day-blue via-primary to-fuse-orange p-4 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-white rounded-full animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-fuse-orange rounded-full animate-bounce"></div>
+        <div className="absolute top-3/4 left-1/2 w-32 h-32 bg-white rounded-full animate-pulse delay-1000"></div>
+      </div>
+      
+      <Card className="w-full max-w-md shadow-2xl backdrop-blur-sm bg-white/95 border-0 relative z-10 transform hover:scale-105 transition-transform duration-300">
         <CardHeader className="text-center space-y-4">
           <div>
             <h1 className="text-4xl font-bold mb-2">
@@ -66,6 +75,22 @@ export default function Login() {
               </div>
             )}
             
+            {!isLogin && (
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="Your full name"
+                  value={name}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+                  required={!isLogin}
+                  className="transition-all duration-200 focus:ring-2 focus:ring-day-blue"
+                  data-testid="input-name"
+                />
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -73,23 +98,41 @@ export default function Login() {
                 type="email"
                 placeholder="your.email@example.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                 required
+                className="transition-all duration-200 focus:ring-2 focus:ring-day-blue"
                 data-testid="input-email"
               />
             </div>
             
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                data-testid="input-password"
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+                  required
+                  className="pr-10 transition-all duration-200 focus:ring-2 focus:ring-day-blue"
+                  data-testid="input-password"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent active:scale-90 transition-all duration-150"
+                  onClick={() => setShowPassword(!showPassword)}
+                  data-testid="button-toggle-password"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-gray-400 hover:text-day-blue transition-colors" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-gray-400 hover:text-day-blue transition-colors" />
+                  )}
+                </Button>
+              </div>
             </div>
 
             {!notificationsEnabled && (
@@ -103,12 +146,12 @@ export default function Login() {
           <CardFooter className="flex flex-col space-y-4">
             <Button 
               type="submit" 
-              className="w-full bg-day-blue hover:bg-day-blue/90"
+              className="w-full bg-day-blue hover:bg-day-blue/90 active:scale-95 transition-all duration-200 h-12 text-lg font-semibold"
               disabled={loading}
               data-testid="button-submit"
             >
               {loading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
               ) : null}
               {isLogin ? 'Sign In' : 'Sign Up'}
             </Button>
@@ -116,8 +159,14 @@ export default function Login() {
             <Button
               type="button"
               variant="link"
-              onClick={() => setIsLogin(!isLogin)}
-              className="w-full"
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setError('');
+                setName('');
+                setEmail('');
+                setPassword('');
+              }}
+              className="w-full text-day-blue hover:text-day-blue/80 active:scale-95 transition-all duration-200"
               data-testid="button-toggle-auth"
             >
               {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
