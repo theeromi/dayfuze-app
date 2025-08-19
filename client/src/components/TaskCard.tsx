@@ -5,6 +5,7 @@ import { Task } from "@/contexts/TaskContext";
 import { format } from "date-fns";
 import { useState } from "react";
 import { TaskCompletionCelebration } from "./TaskCompletionCelebration";
+import { MotivationalQuote, useMotivationalQuote } from "./MotivationalQuote";
 
 interface TaskCardProps {
   task: Task;
@@ -16,6 +17,7 @@ interface TaskCardProps {
 
 export function TaskCard({ task, onToggleComplete, onEdit, onDelete, showActions = false }: TaskCardProps) {
   const [showCelebration, setShowCelebration] = useState(false);
+  const { currentQuote, showQuote, hideQuote } = useMotivationalQuote();
   
   const priorityColors = {
     high: "border-accent-red bg-red-100 text-accent-red",
@@ -51,9 +53,10 @@ export function TaskCard({ task, onToggleComplete, onEdit, onDelete, showActions
             variant="ghost"
             size="sm"
             onClick={() => {
-              // Show celebration if task is being completed (not uncompleted)
+              // Show celebration and motivational quote if task is being completed (not uncompleted)
               if (!task.completed) {
                 setShowCelebration(true);
+                showQuote('completion');
               }
               onToggleComplete(task.id);
             }}
@@ -121,6 +124,15 @@ export function TaskCard({ task, onToggleComplete, onEdit, onDelete, showActions
         taskTitle={task.title}
         onComplete={() => setShowCelebration(false)}
       />
+      
+      {currentQuote?.show && (
+        <MotivationalQuote 
+          category={currentQuote.category}
+          onClose={hideQuote}
+          autoHide={true}
+          duration={4000}
+        />
+      )}
     </Card>
   );
 }
