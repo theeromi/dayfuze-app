@@ -11,6 +11,8 @@ import Timeline from "@/pages/Timeline";
 import Profile from "@/pages/Profile";
 import Login from "@/pages/Login";
 import NotFound from "@/pages/not-found";
+import { useEffect } from "react";
+import NotificationManager from "@/lib/notifications";
 
 function AppRoutes() {
   const { currentUser, loading } = useAuth();
@@ -48,6 +50,13 @@ function AppRoutes() {
 }
 
 function App() {
+  // Initialize notification checking when app starts
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      NotificationManager.checkPendingNotifications();
+    }
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
