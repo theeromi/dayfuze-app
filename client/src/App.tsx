@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { TaskProvider } from '@/contexts/TaskContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 
 // Pages
 import Login from '@/pages/Login';
@@ -24,21 +25,23 @@ const queryClient = new QueryClient({
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <NotificationProvider>
-          <TaskProvider>
-            <div className="min-h-screen bg-background text-foreground">
-              <Switch>
-                <Route path="/login" component={Login} />
-                <Route path="/tasks" component={Tasks} />
-                <Route path="/timeline" component={Timeline} />
-                <Route path="/profile" component={Profile} />
-                <Route path="/" component={Dashboard} />
-              </Switch>
-            </div>
-          </TaskProvider>
-        </NotificationProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <NotificationProvider>
+            <TaskProvider>
+              <div className="min-h-screen bg-background text-foreground">
+                <Switch>
+                  <Route path="/login" component={Login} />
+                  <Route path="/tasks" component={Tasks} />
+                  <Route path="/timeline" component={Timeline} />
+                  <Route path="/profile" component={Profile} />
+                  <Route path="/" component={Dashboard} />
+                </Switch>
+              </div>
+            </TaskProvider>
+          </NotificationProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

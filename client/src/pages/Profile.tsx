@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
+import { ThemeToggle } from '../components/ThemeToggle';
 
 export default function Profile() {
   const { currentUser, loading: authLoading, handleLogout } = useAuth();
@@ -397,6 +398,27 @@ export default function Profile() {
         </Card>
 
         {/* Support Section */}
+        {/* Theme Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle>App Settings</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                <div>
+                  <p className="font-medium">Theme Preference</p>
+                  <p className="text-sm text-muted-foreground">Choose your preferred color scheme</p>
+                </div>
+                <div className="ml-4">
+                  <ThemeToggle />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Support & Feedback */}
         <Card>
           <CardHeader>
             <CardTitle>Support & Feedback</CardTitle>

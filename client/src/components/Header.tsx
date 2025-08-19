@@ -1,5 +1,5 @@
 import { Link } from 'wouter';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function Header() {
   const { user, logout } = useAuth();
