@@ -1,8 +1,8 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation } from 'wouter';
-import { Button } from '@/components/ui/button';
-import { User, Menu, Home, CheckSquare, Calendar, Timeline, Settings } from 'lucide-react';
+import { Button } from './button';
+import { User, Menu, Home, CheckSquare, Calendar, Settings } from 'lucide-react';
 
 export default function Header() {
   const { currentUser } = useAuth();
