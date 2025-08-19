@@ -2,18 +2,14 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
-// TODO: Replace with your actual Firebase configuration
-// Get these values from your Firebase project settings
-// You can either:
-// 1. Replace these placeholder values directly, or
-// 2. Use environment variables (if supported by your Expo setup)
+// Firebase configuration - dayfuse-web project
 const firebaseConfig = {
-  apiKey: "your-firebase-api-key",
-  authDomain: "your-project.firebaseapp.com", 
-  projectId: "your-project-id",
-  storageBucket: "your-project.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:abcdef123456"
+  apiKey: "AIzaSyBL2d_IwH6JkK4sZMJypA_Vf-S3RlxvmGc",
+  authDomain: "dayfuse-web.firebaseapp.com",
+  projectId: "dayfuse-web",
+  storageBucket: "dayfuse-web.firebasestorage.app",
+  messagingSenderId: "593450445384",
+  appId: "1:593450445384:web:b7ce3b6b34124c97f9c67d"
 };
 
 // Initialize Firebase
