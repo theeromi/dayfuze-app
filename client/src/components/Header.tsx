@@ -2,7 +2,7 @@ import { Link } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 
 export function Header() {
-  const { user, logout } = useAuth();
+  const { currentUser, handleLogout } = useAuth();
 
   return (
     <header className="bg-white shadow-sm border-b">
@@ -12,13 +12,13 @@ export function Header() {
         </Link>
         
         <nav className="flex items-center gap-4">
-          {user ? (
+          {currentUser ? (
             <>
               <Link href="/profile">
                 <span className="text-gray-600 hover:text-gray-900">Profile</span>
               </Link>
               <button 
-                onClick={logout}
+                onClick={handleLogout}
                 className="text-gray-600 hover:text-gray-900"
               >
                 Logout

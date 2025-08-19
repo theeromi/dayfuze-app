@@ -278,6 +278,36 @@ export default function Profile() {
                       </div>
                     )}
                     
+                    {/* iOS-specific notification help */}
+                    <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <p className="font-medium text-blue-800 dark:text-blue-200 mb-2">📱 iPhone/iOS Users</p>
+                          <p className="text-sm text-blue-600 dark:text-blue-300 mb-2">
+                            For the best notification experience on iPhone:
+                          </p>
+                          <ul className="text-xs text-blue-600 dark:text-blue-300 space-y-1 ml-4">
+                            <li>• Tap Share → "Add to Home Screen"</li>
+                            <li>• Open DayFuse from your home screen</li>
+                            <li>• Tasks will also be added to your Calendar as backup</li>
+                          </ul>
+                        </div>
+                        <Button
+                          onClick={async () => {
+                            const { enhancedNotificationManager } = await import('@/lib/notificationFallbacks');
+                            const capabilities = enhancedNotificationManager.getCapabilities();
+                            alert(`Device Info:\n• iOS: ${capabilities.isIOS ? 'Yes' : 'No'}\n• iOS Version: ${capabilities.iosVersion || 'N/A'}\n• PWA Installed: ${capabilities.isPWAInstalled ? 'Yes' : 'No'}\n• Push Support: ${capabilities.supportsPush ? 'Yes' : 'No'}\n• Browser: ${capabilities.browserName}`);
+                          }}
+                          variant="outline"
+                          size="sm"
+                          className="border-blue-300 dark:border-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900 text-xs px-2 py-1 h-auto ml-2"
+                          data-testid="button-device-info"
+                        >
+                          Check Device
+                        </Button>
+                      </div>
+                    </div>
+                    
                     {notificationPermission === 'denied' && (
                       <div className="p-3 bg-yellow-50 dark:bg-yellow-950 rounded-lg border border-yellow-200 dark:border-yellow-800">
                         <p className="text-sm text-yellow-800 dark:text-yellow-200 font-medium mb-1">Notifications Blocked</p>
