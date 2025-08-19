@@ -1,145 +1,212 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { Task } from '../components/TaskCard';
-import { useAuth } from './AuthContext';
-import { 
-  collection, 
-  query, 
-  where, 
-  onSnapshot, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
+import {
+  collection,
+  query,
+  onSnapshot,
+  addDoc,
+  updateDoc,
+  deleteDoc,
   doc,
-  orderBy 
+  serverTimestamp,
+  Timestamp,
+  orderBy,
 } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db } from '@/lib/firebase';
+import { useAuth } from './AuthContext';
+import { useNotification } from './NotificationContext';
+
+export interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  priority: 'low' | 'medium' | 'high';
+  status: 'todo' | 'progress' | 'done';
+  dueDate: Timestamp;
+  dueTime?: string;
+  completed: boolean;
+  createdAt: Timestamp;
+}
+
+export interface TaskInput {
+  title: string;
+  description?: string;
+  priority: 'low' | 'medium' | 'high';
+  status: 'todo' | 'progress' | 'done';
+  dueDate: Timestamp;
+  dueTime?: string;
+}
 
 interface TaskContextType {
   tasks: Task[];
   loading: boolean;
-  addTask: (task: Omit<Task, 'id' | 'createdAt'>) => Promise<void>;
-  updateTask: (id: string, updates: Partial<Task>) => Promise<void>;
-  deleteTask: (id: string) => Promise<void>;
-  toggleTask: (id: string) => Promise<void>;
+  addTask: (task: TaskInput) => Promise<void>;
+  editTask: (taskId: string, updates: Partial<TaskInput>) => Promise<void>;
+  deleteTask: (taskId: string) => Promise<void>;
+  toggleTaskCompletion: (taskId: string) => Promise<void>;
+  setTaskPriority: (taskId: string, priority: 'low' | 'medium' | 'high') => Promise<void>;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
-export function useTask() {
+export const useTask = () => {
   const context = useContext(TaskContext);
   if (context === undefined) {
     throw new Error('useTask must be used within a TaskProvider');
   }
   return context;
-}
+};
 
 interface TaskProviderProps {
   children: ReactNode;
 }
 
-export function TaskProvider({ children }: TaskProviderProps) {
-  const [tasks, setTasks] = useState<Task[]>([
-    // Demo tasks to get started
-    {
-      id: '1',
-      title: 'Review daily goals',
-      description: 'Plan and prioritize tasks for maximum productivity',
-      completed: false,
-      priority: 'high',
-      dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      dueTime: '09:00',
-      tags: ['planning', 'goals'],
-      createdAt: new Date(),
-    },
-    {
-      id: '2',
-      title: 'Complete project proposal',
-      description: 'Finalize and submit the Q4 project proposal',
-      completed: false,
-      priority: 'medium',
-      dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-      tags: ['work', 'deadline'],
-      createdAt: new Date(),
-    },
-    {
-      id: '3',
-      title: 'Exercise for 30 minutes',
-      description: 'Morning workout routine for health and energy',
-      completed: true,
-      priority: 'low',
-      tags: ['health', 'fitness'],
-      createdAt: new Date(),
-      completedAt: new Date(),
-    },
-  ]);
-  const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
+export const TaskProvider: React.FC<TaskProviderProps> = ({ children }) => {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { currentUser } = useAuth();
+  const { scheduleNotification, cancelNotification } = useNotification();
 
-  // For now, use local state instead of Firestore to avoid permission issues
-  // This would normally sync with Firebase when properly configured
   useEffect(() => {
-    if (!user) {
-      // Keep demo tasks even when not logged in for demo purposes
+    if (!currentUser) {
+      setTasks([]);
       setLoading(false);
-    } else {
-      setLoading(false);
-      // TODO: Implement Firebase sync when authentication is configured
+      return;
     }
-  }, [user]);
 
-  const addTask = async (taskData: Omit<Task, 'id' | 'createdAt'>) => {
-    const newTask: Task = {
-      ...taskData,
-      id: Date.now().toString(),
-      createdAt: new Date(),
-    };
-    
-    setTasks(prevTasks => [newTask, ...prevTasks]);
-    // TODO: Sync to Firebase when configured
-  };
+    const tasksRef = collection(db, 'users', currentUser.uid, 'tasks');
+    const q = query(tasksRef, orderBy('createdAt', 'desc'));
 
-  const updateTask = async (id: string, updates: Partial<Task>) => {
-    setTasks(prevTasks => 
-      prevTasks.map(task => 
-        task.id === id 
-          ? { 
-              ...task, 
-              ...updates,
-              ...(updates.completed && { completedAt: new Date() })
-            }
-          : task
-      )
-    );
-    // TODO: Sync to Firebase when configured
-  };
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const taskList: Task[] = [];
+      snapshot.forEach((doc) => {
+        taskList.push({ id: doc.id, ...doc.data() } as Task);
+      });
+      setTasks(taskList);
+      setLoading(false);
+    });
 
-  const deleteTask = async (id: string) => {
-    setTasks(prevTasks => prevTasks.filter(task => task.id !== id));
-    // TODO: Sync to Firebase when configured
-  };
+    return unsubscribe;
+  }, [currentUser]);
 
-  const toggleTask = async (id: string) => {
-    const task = tasks.find(t => t.id === id);
-    if (task) {
-      await updateTask(id, { 
-        completed: !task.completed,
-        completedAt: !task.completed ? new Date() : undefined
+  const addTask = async (taskInput: TaskInput) => {
+    if (!currentUser) throw new Error('User not authenticated');
+
+    const tasksRef = collection(db, 'users', currentUser.uid, 'tasks');
+    const docRef = await addDoc(tasksRef, {
+      ...taskInput,
+      completed: false,
+      createdAt: serverTimestamp(),
+    });
+
+    // Schedule notification if task has a due time
+    if (taskInput.dueTime) {
+      const taskDateTime = new Date(taskInput.dueDate.toDate());
+      const [hours, minutes] = taskInput.dueTime.split(':').map(Number);
+      taskDateTime.setHours(hours, minutes, 0, 0);
+
+      // Schedule notification for the due time
+      scheduleNotification(docRef.id, {
+        title: 'Task Reminder',
+        body: `Time for: ${taskInput.title}`,
+        scheduledTime: taskDateTime,
+      });
+
+      // Also schedule a notification 1 minute after
+      const oneMinuteAfter = new Date(taskDateTime.getTime() + 60000);
+      scheduleNotification(`${docRef.id}_reminder`, {
+        title: 'Task Follow-up',
+        body: `Don't forget: ${taskInput.title}`,
+        scheduledTime: oneMinuteAfter,
       });
     }
   };
 
-  const value = {
+  const editTask = async (taskId: string, updates: Partial<TaskInput>) => {
+    if (!currentUser) throw new Error('User not authenticated');
+
+    const taskRef = doc(db, 'users', currentUser.uid, 'tasks', taskId);
+    await updateDoc(taskRef, updates);
+
+    // Handle notification updates
+    if (updates.dueTime !== undefined || updates.dueDate !== undefined) {
+      // Cancel existing notifications
+      cancelNotification(taskId);
+      cancelNotification(`${taskId}_reminder`);
+
+      // Schedule new notifications if there's a due time
+      if (updates.dueTime) {
+        const task = tasks.find(t => t.id === taskId);
+        if (task) {
+          const taskDateTime = new Date((updates.dueDate || task.dueDate).toDate());
+          const [hours, minutes] = updates.dueTime.split(':').map(Number);
+          taskDateTime.setHours(hours, minutes, 0, 0);
+
+          scheduleNotification(taskId, {
+            title: 'Task Reminder',
+            body: `Time for: ${updates.title || task.title}`,
+            scheduledTime: taskDateTime,
+          });
+
+          const oneMinuteAfter = new Date(taskDateTime.getTime() + 60000);
+          scheduleNotification(`${taskId}_reminder`, {
+            title: 'Task Follow-up',
+            body: `Don't forget: ${updates.title || task.title}`,
+            scheduledTime: oneMinuteAfter,
+          });
+        }
+      }
+    }
+  };
+
+  const deleteTask = async (taskId: string) => {
+    if (!currentUser) throw new Error('User not authenticated');
+
+    const taskRef = doc(db, 'users', currentUser.uid, 'tasks', taskId);
+    await deleteDoc(taskRef);
+
+    // Cancel notifications for deleted task
+    cancelNotification(taskId);
+    cancelNotification(`${taskId}_reminder`);
+  };
+
+  const toggleTaskCompletion = async (taskId: string) => {
+    if (!currentUser) throw new Error('User not authenticated');
+
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    const taskRef = doc(db, 'users', currentUser.uid, 'tasks', taskId);
+    const newCompleted = !task.completed;
+    const newStatus = newCompleted ? 'done' : 'todo';
+    
+    await updateDoc(taskRef, { 
+      completed: newCompleted,
+      status: newStatus
+    });
+
+    // Cancel notifications if task is completed
+    if (newCompleted) {
+      cancelNotification(taskId);
+      cancelNotification(`${taskId}_reminder`);
+    }
+  };
+
+  const setTaskPriority = async (taskId: string, priority: 'low' | 'medium' | 'high') => {
+    if (!currentUser) throw new Error('User not authenticated');
+
+    const taskRef = doc(db, 'users', currentUser.uid, 'tasks', taskId);
+    await updateDoc(taskRef, { priority });
+  };
+
+  const value: TaskContextType = {
     tasks,
     loading,
     addTask,
-    updateTask,
+    editTask,
     deleteTask,
-    toggleTask,
+    toggleTaskCompletion,
+    setTaskPriority,
   };
 
-  return (
-    <TaskContext.Provider value={value}>
-      {children}
-    </TaskContext.Provider>
-  );
-}
+  return <TaskContext.Provider value={value}>{children}</TaskContext.Provider>;
+};

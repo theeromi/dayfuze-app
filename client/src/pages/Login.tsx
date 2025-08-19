@@ -1,91 +1,130 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNotification } from '@/contexts/NotificationContext';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 import { useLocation } from 'wouter';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../lib/firebase';
+import { Loader2, Bell } from 'lucide-react';
 
 export default function Login() {
-  const [, setLocation] = useLocation();
-  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const { currentUser, handleAuth } = useAuth();
+  const { notificationsEnabled, requestPermission } = useNotification();
+  const [, navigate] = useLocation();
+
+  useEffect(() => {
+    if (currentUser) {
+      navigate('/');
+    }
+  }, [currentUser, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
+    setError('');
 
     try {
-      if (isSignUp) {
-        await createUserWithEmailAndPassword(auth, email, password);
-      } else {
-        await signInWithEmailAndPassword(auth, email, password);
+      await handleAuth(email, password, isLogin);
+      // Request notification permission after successful login
+      if (!notificationsEnabled) {
+        await requestPermission();
       }
-      setLocation('/');
-    } catch (error: any) {
-      setError(error.message);
+    } catch (err: any) {
+      setError(err.message || 'Authentication failed');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="text-center text-3xl font-extrabold text-gray-900">
-            {isSignUp ? 'Create your account' : 'Sign in to DayFuse'}
-          </h2>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="text-red-600 text-sm text-center">{error}</div>
-          )}
-          
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-day-blue via-primary to-fuse-orange p-4">
+      <Card className="w-full max-w-md shadow-2xl">
+        <CardHeader className="text-center space-y-4">
           <div>
-            <input
-              type="email"
-              required
-              className="relative block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="Email address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+            <h1 className="text-4xl font-bold mb-2">
+              <span className="text-day-blue">Day</span>
+              <span className="text-fuse-orange">Fuse</span>
+            </h1>
+            <CardTitle className="text-xl">Welcome Back</CardTitle>
+            <CardDescription>
+              Your productivity companion
+            </CardDescription>
           </div>
-          
-          <div>
-            <input
-              type="password"
-              required
-              className="relative block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
+        </CardHeader>
+        
+        <form onSubmit={handleSubmit}>
+          <CardContent className="space-y-4">
+            {error && (
+              <div className="text-sm text-red-500 bg-red-50 p-3 rounded-lg">
+                {error}
+              </div>
+            )}
+            
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="your.email@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                data-testid="input-email"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                data-testid="input-password"
+              />
+            </div>
 
-          <div>
-            <button
-              type="submit"
+            {!notificationsEnabled && (
+              <div className="flex items-center gap-2 p-3 bg-yellow-50 rounded-lg text-sm text-yellow-800">
+                <Bell className="h-4 w-4" />
+                <span>Enable notifications to get task reminders</span>
+              </div>
+            )}
+          </CardContent>
+          
+          <CardFooter className="flex flex-col space-y-4">
+            <Button 
+              type="submit" 
+              className="w-full bg-day-blue hover:bg-day-blue/90"
               disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              data-testid="button-submit"
             >
-              {loading ? 'Loading...' : (isSignUp ? 'Sign up' : 'Sign in')}
-            </button>
-          </div>
-
-          <div className="text-center">
-            <button
+              {loading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : null}
+              {isLogin ? 'Sign In' : 'Sign Up'}
+            </Button>
+            
+            <Button
               type="button"
-              className="text-indigo-600 hover:text-indigo-500"
-              onClick={() => setIsSignUp(!isSignUp)}
+              variant="link"
+              onClick={() => setIsLogin(!isLogin)}
+              className="w-full"
+              data-testid="button-toggle-auth"
             >
-              {isSignUp ? 'Already have an account? Sign in' : 'Need an account? Sign up'}
-            </button>
-          </div>
+              {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
+            </Button>
+          </CardFooter>
         </form>
-      </div>
+      </Card>
     </div>
   );
 }

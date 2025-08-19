@@ -1,200 +1,237 @@
 import React, { useState } from 'react';
-import { X, Calendar, Clock, Tag } from 'lucide-react';
-import { useTask } from '../contexts/TaskContext';
-import { Task } from './TaskCard';
+import { useTask, TaskInput } from '@/contexts/TaskContext';
+import { useNotification } from '@/contexts/NotificationContext';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CalendarIcon, Clock, Plus, Bell } from 'lucide-react';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { Timestamp } from 'firebase/firestore';
 
 interface AddTaskModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  editingTask?: Task | null;
+  trigger?: React.ReactNode;
+  onSuccess?: () => void;
 }
 
-export function AddTaskModal({ isOpen, onClose, editingTask }: AddTaskModalProps) {
-  const { addTask, updateTask } = useTask();
-  const [title, setTitle] = useState(editingTask?.title || '');
-  const [description, setDescription] = useState(editingTask?.description || '');
-  const [priority, setPriority] = useState<'low' | 'medium' | 'high'>(editingTask?.priority || 'medium');
-  const [dueDate, setDueDate] = useState(
-    editingTask?.dueDate ? editingTask.dueDate.toISOString().split('T')[0] : ''
-  );
-  const [dueTime, setDueTime] = useState(editingTask?.dueTime || '');
-  const [tags, setTags] = useState(editingTask?.tags?.join(', ') || '');
+export default function AddTaskModal({ trigger, onSuccess }: AddTaskModalProps) {
+  const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { addTask } = useTask();
+  const { notificationsEnabled, requestPermission } = useNotification();
+  
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    priority: 'medium' as 'low' | 'medium' | 'high',
+    status: 'todo' as 'todo' | 'progress' | 'done',
+    dueDate: new Date(),
+    dueTime: '',
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) return;
+    if (!formData.title.trim()) return;
 
     setLoading(true);
     try {
-      const taskData = {
-        title: title.trim(),
-        description: description.trim(),
-        priority,
-        dueDate: dueDate ? new Date(dueDate) : undefined,
-        dueTime: dueTime || undefined,
-        tags: tags ? tags.split(',').map(tag => tag.trim()).filter(Boolean) : [],
-        completed: editingTask?.completed || false,
+      const taskInput: TaskInput = {
+        title: formData.title.trim(),
+        description: formData.description.trim() || undefined,
+        priority: formData.priority,
+        status: formData.status,
+        dueDate: Timestamp.fromDate(formData.dueDate),
+        dueTime: formData.dueTime || undefined,
       };
 
-      if (editingTask) {
-        await updateTask(editingTask.id, taskData);
-      } else {
-        await addTask(taskData);
+      // Request notification permission if time is set and notifications aren't enabled
+      if (formData.dueTime && !notificationsEnabled) {
+        const granted = await requestPermission();
+        if (!granted) {
+          alert('Please enable notifications to get task reminders');
+        }
       }
 
-      resetForm();
-      onClose();
+      await addTask(taskInput);
+      
+      // Reset form
+      setFormData({
+        title: '',
+        description: '',
+        priority: 'medium',
+        status: 'todo',
+        dueDate: new Date(),
+        dueTime: '',
+      });
+      
+      setOpen(false);
+      onSuccess?.();
     } catch (error) {
-      console.error('Error saving task:', error);
+      console.error('Failed to add task:', error);
+      alert('Failed to add task. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const resetForm = () => {
-    setTitle('');
-    setDescription('');
-    setPriority('medium');
-    setDueDate('');
-    setDueTime('');
-    setTags('');
-  };
-
-  const handleClose = () => {
-    resetForm();
-    onClose();
-  };
-
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center p-6 border-b">
-          <h2 className="text-lg font-semibold">
-            {editingTask ? 'Edit Task' : 'Add New Task'}
-          </h2>
-          <button
-            onClick={handleClose}
-            className="text-gray-400 hover:text-gray-600"
-            data-testid="close-modal"
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        {trigger || (
+          <Button 
+            className="bg-day-blue hover:bg-day-blue/90"
+            data-testid="button-add-task"
           >
-            <X size={24} />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Title *
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter task title..."
-              autoFocus
-              data-testid="task-title-input"
+            <Plus className="mr-2 h-4 w-4" />
+            Add Task
+          </Button>
+        )}
+      </DialogTrigger>
+      
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>Add New Task</DialogTitle>
+        </DialogHeader>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="title">Title *</Label>
+            <Input
+              id="title"
+              placeholder="What needs to be done?"
+              value={formData.title}
+              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              required
+              data-testid="input-task-title"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description
-            </label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              placeholder="Add details about your task..."
+              value={formData.description}
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Add a description..."
-              data-testid="task-description-input"
+              data-testid="input-task-description"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Priority
-            </label>
-            <select
-              value={priority}
-              onChange={(e) => setPriority(e.target.value as 'low' | 'medium' | 'high')}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              data-testid="task-priority-select"
-            >
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-            </select>
-          </div>
-
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
-                <Calendar size={16} />
-                Due Date
-              </label>
-              <input
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                data-testid="task-due-date-input"
-              />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Priority</Label>
+              <Select
+                value={formData.priority}
+                onValueChange={(value: 'low' | 'medium' | 'high') =>
+                  setFormData(prev => ({ ...prev, priority: value }))
+                }
+              >
+                <SelectTrigger data-testid="select-priority">
+                  <SelectValue placeholder="Select priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <div className="flex-1">
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
-                <Clock size={16} />
-                Due Time
-              </label>
-              <input
-                type="time"
-                value={dueTime}
-                onChange={(e) => setDueTime(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                data-testid="task-due-time-input"
-              />
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select
+                value={formData.status}
+                onValueChange={(value: 'todo' | 'progress' | 'done') =>
+                  setFormData(prev => ({ ...prev, status: value }))
+                }
+              >
+                <SelectTrigger data-testid="select-status">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todo">To-Do</SelectItem>
+                  <SelectItem value="progress">In Progress</SelectItem>
+                  <SelectItem value="done">Done</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
-          <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
-              <Tag size={16} />
-              Tags
-            </label>
-            <input
-              type="text"
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="work, personal, urgent (comma-separated)"
-              data-testid="task-tags-input"
+          <div className="space-y-2">
+            <Label>Due Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !formData.dueDate && "text-muted-foreground"
+                  )}
+                  data-testid="button-select-date"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {formData.dueDate ? format(formData.dueDate, "PPP") : "Pick a date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={formData.dueDate}
+                  onSelect={(date) => date && setFormData(prev => ({ ...prev, dueDate: date }))}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="dueTime" className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              Due Time (Optional)
+              {formData.dueTime && !notificationsEnabled && (
+                <Bell className="h-4 w-4 text-yellow-500" />
+              )}
+            </Label>
+            <Input
+              id="dueTime"
+              type="time"
+              value={formData.dueTime}
+              onChange={(e) => setFormData(prev => ({ ...prev, dueTime: e.target.value }))}
+              data-testid="input-task-time"
             />
+            {formData.dueTime && (
+              <p className="text-sm text-muted-foreground">
+                ⏰ You'll get notified at {formData.dueTime} and 1 minute after
+              </p>
+            )}
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t">
-            <button
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button
               type="button"
-              onClick={handleClose}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800"
-              data-testid="cancel-task"
+              variant="outline"
+              onClick={() => setOpen(false)}
+              data-testid="button-cancel"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              disabled={loading || !title.trim()}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-              data-testid="save-task"
+              disabled={loading || !formData.title.trim()}
+              className="bg-day-blue hover:bg-day-blue/90"
+              data-testid="button-save-task"
             >
-              {loading ? 'Saving...' : (editingTask ? 'Update Task' : 'Add Task')}
-            </button>
+              {loading ? 'Adding...' : 'Add Task'}
+            </Button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
