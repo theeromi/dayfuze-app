@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CalendarDays, Clock, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
 import { format, addDays, subDays, startOfWeek, endOfWeek, isSameDay } from 'date-fns';
+import { formatTime12Hour } from '@/lib/timeUtils';
 
 export default function Timeline() {
   const { currentUser, loading: authLoading } = useAuth();
@@ -232,7 +233,7 @@ export default function Timeline() {
                               {task.dueTime && (
                                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                   <Clock className="h-3 w-3" />
-                                  {task.dueTime}
+                                  {formatTime12Hour(task.dueTime)}
                                 </div>
                               )}
                               <Badge className={getStatusColor(task.status)}>

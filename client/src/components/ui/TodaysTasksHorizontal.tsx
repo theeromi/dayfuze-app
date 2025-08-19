@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Task } from '@/contexts/TaskContext';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { formatTime12Hour } from '@/lib/timeUtils';
 
 interface TodaysTasksHorizontalProps {
   tasks: Task[];
@@ -70,7 +71,7 @@ export default function TodaysTasksHorizontal({ tasks, onTaskClick }: TodaysTask
                   {task.dueTime && (
                     <div className="flex items-center gap-1 text-sm text-muted-foreground">
                       <Clock className="h-3 w-3" />
-                      {task.dueTime}
+                      {formatTime12Hour(task.dueTime)}
                     </div>
                   )}
                 </div>

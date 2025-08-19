@@ -104,19 +104,24 @@ export function TaskProvider({ children }: TaskProviderProps) {
       const [hours, minutes] = taskInput.dueTime.split(':').map(Number);
       taskDateTime.setHours(hours, minutes, 0, 0);
 
+      // Use the enhanced notification manager
+      const { notificationManager } = await import('@/lib/notifications');
+      
       // Schedule notification for the due time
-      scheduleNotification(docRef.id, {
-        title: 'Task Reminder',
-        body: `Time for: ${taskInput.title}`,
-        scheduledTime: taskDateTime,
+      await notificationManager.scheduleTaskReminder({
+        id: docRef.id,
+        title: taskInput.title,
+        dueTime: taskDateTime,
+        description: taskInput.description
       });
 
       // Also schedule a notification 1 minute after
       const oneMinuteAfter = new Date(taskDateTime.getTime() + 60000);
-      scheduleNotification(`${docRef.id}_reminder`, {
-        title: 'Task Follow-up',
-        body: `Don't forget: ${taskInput.title}`,
-        scheduledTime: oneMinuteAfter,
+      await notificationManager.scheduleTaskReminder({
+        id: `${docRef.id}_reminder`,
+        title: `Follow-up: ${taskInput.title}`,
+        dueTime: oneMinuteAfter,
+        description: taskInput.description
       });
     }
   };
@@ -129,9 +134,11 @@ export function TaskProvider({ children }: TaskProviderProps) {
 
     // Handle notification updates
     if (updates.dueTime !== undefined || updates.dueDate !== undefined) {
+      const { notificationManager } = await import('@/lib/notifications');
+      
       // Cancel existing notifications
-      cancelNotification(taskId);
-      cancelNotification(`${taskId}_reminder`);
+      notificationManager.cancelNotification(taskId);
+      notificationManager.cancelNotification(`${taskId}_reminder`);
 
       // Schedule new notifications if there's a due time
       if (updates.dueTime) {
@@ -141,17 +148,19 @@ export function TaskProvider({ children }: TaskProviderProps) {
           const [hours, minutes] = updates.dueTime.split(':').map(Number);
           taskDateTime.setHours(hours, minutes, 0, 0);
 
-          scheduleNotification(taskId, {
-            title: 'Task Reminder',
-            body: `Time for: ${updates.title || task.title}`,
-            scheduledTime: taskDateTime,
+          await notificationManager.scheduleTaskReminder({
+            id: taskId,
+            title: updates.title || task.title,
+            dueTime: taskDateTime,
+            description: updates.description || task.description
           });
 
           const oneMinuteAfter = new Date(taskDateTime.getTime() + 60000);
-          scheduleNotification(`${taskId}_reminder`, {
-            title: 'Task Follow-up',
-            body: `Don't forget: ${updates.title || task.title}`,
-            scheduledTime: oneMinuteAfter,
+          await notificationManager.scheduleTaskReminder({
+            id: `${taskId}_reminder`,
+            title: `Follow-up: ${updates.title || task.title}`,
+            dueTime: oneMinuteAfter,
+            description: updates.description || task.description
           });
         }
       }
@@ -165,8 +174,9 @@ export function TaskProvider({ children }: TaskProviderProps) {
     await deleteDoc(taskRef);
 
     // Cancel notifications for deleted task
-    cancelNotification(taskId);
-    cancelNotification(`${taskId}_reminder`);
+    const { notificationManager } = await import('@/lib/notifications');
+    notificationManager.cancelNotification(taskId);
+    notificationManager.cancelNotification(`${taskId}_reminder`);
   };
 
   const toggleTaskCompletion = async (taskId: string) => {

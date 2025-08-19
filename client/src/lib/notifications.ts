@@ -1,7 +1,10 @@
+import { addToCalendar, CalendarEvent } from './calendarUtils';
+
 // Notification Manager - Singleton for handling push notifications
 class NotificationManager {
   private static instance: NotificationManager;
   private permission: NotificationPermission = 'default';
+  private scheduledNotifications: Map<string, number> = new Map();
 
   private constructor() {
     this.permission = Notification.permission;
@@ -38,7 +41,7 @@ class NotificationManager {
     return this.permission;
   }
 
-  async scheduleTaskReminder(task: { id: string; title: string; dueTime: Date }): Promise<void> {
+  async scheduleTaskReminder(task: { id: string; title: string; dueTime: Date; description?: string }): Promise<void> {
     if (this.permission !== 'granted') {
       console.warn('Notification permission not granted');
       return;
@@ -52,34 +55,97 @@ class NotificationManager {
       return;
     }
 
-    setTimeout(() => {
-      this.showTaskNotification(task.title, task.id);
+    // Cancel any existing notification for this task
+    this.cancelNotification(task.id);
+
+    // Schedule notification
+    const timeoutId = window.setTimeout(() => {
+      this.showTaskNotification(task.title, task.id, task.description);
     }, delay);
+
+    this.scheduledNotifications.set(task.id, timeoutId);
+
+    // Also try to add to calendar for better notification reliability
+    try {
+      const calendarEvent: CalendarEvent = {
+        title: `DayFuse: ${task.title}`,
+        description: task.description || 'Task reminder from DayFuse',
+        startDate: task.dueTime,
+        endDate: new Date(task.dueTime.getTime() + 30 * 60 * 1000) // 30 minutes duration
+      };
+      
+      await addToCalendar(calendarEvent);
+      console.log('Task added to calendar for enhanced notifications');
+    } catch (error) {
+      console.warn('Calendar integration failed, but browser notifications will still work:', error);
+    }
   }
 
-  private showTaskNotification(taskTitle: string, taskId: string): void {
+  private showTaskNotification(taskTitle: string, taskId: string, taskDescription?: string): void {
     if (typeof window === 'undefined' || this.permission !== 'granted') return;
 
     try {
-      const notification = new Notification('DayFuse Task Reminder', {
-        body: `Time to work on: ${taskTitle}`,
+      const notification = new Notification('🚀 DayFuse Task Reminder', {
+        body: `Time to work on: ${taskTitle}${taskDescription ? `\n${taskDescription}` : ''}`,
         icon: '/icon-192x192.svg',
         badge: '/icon-72x72.svg',
         tag: `task-${taskId}`,
         requireInteraction: true,
+        vibrate: [200, 100, 200], // For mobile devices
+        actions: [
+          {
+            action: 'complete',
+            title: '✅ Mark Complete',
+            icon: '/icon-72x72.svg'
+          },
+          {
+            action: 'snooze',
+            title: '⏰ Snooze 10min',
+            icon: '/icon-72x72.svg'
+          }
+        ]
       });
 
       notification.onclick = () => {
         if (typeof window !== 'undefined') {
           window.focus();
+          // Navigate to tasks page to show the specific task
+          window.location.hash = '#/tasks';
         }
         notification.close();
       };
 
-      // Auto-close after 10 seconds if not interacted with
+      // Handle notification actions
+      if ('actions' in notification) {
+        notification.addEventListener?.('notificationclick', (event: any) => {
+          if (event.action === 'complete') {
+            // Send message to main thread to mark task as complete
+            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+              navigator.serviceWorker.controller.postMessage({
+                type: 'COMPLETE_TASK',
+                taskId: taskId
+              });
+            }
+          } else if (event.action === 'snooze') {
+            // Reschedule for 10 minutes later
+            this.scheduleTaskReminder({
+              id: taskId,
+              title: taskTitle,
+              dueTime: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now
+              description: taskDescription
+            });
+          }
+          notification.close();
+        });
+      }
+
+      // Auto-close after 15 seconds if not interacted with
       setTimeout(() => {
         notification.close();
-      }, 10000);
+      }, 15000);
+
+      // Remove from scheduled notifications since it has fired
+      this.scheduledNotifications.delete(taskId);
     } catch (error) {
       console.error('Error showing notification:', error);
     }
@@ -104,10 +170,25 @@ class NotificationManager {
     }
   }
 
+  cancelNotification(taskId: string): void {
+    const timeoutId = this.scheduledNotifications.get(taskId);
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      this.scheduledNotifications.delete(taskId);
+      console.log(`Cancelled notification for task: ${taskId}`);
+    }
+  }
+
   clearAllNotifications(): void {
-    // Clear any pending timeouts if we were tracking them
-    // This is a simplified version - in production you'd want to track timeout IDs
-    console.log('Clearing all scheduled notifications');
+    this.scheduledNotifications.forEach((timeoutId, taskId) => {
+      clearTimeout(timeoutId);
+      console.log(`Cleared notification for task: ${taskId}`);
+    });
+    this.scheduledNotifications.clear();
+  }
+
+  getScheduledNotifications(): string[] {
+    return Array.from(this.scheduledNotifications.keys());
   }
 }
 

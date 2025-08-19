@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Calendar, Clock, Star, Edit, Trash2, Check } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatTime12Hour } from '@/lib/timeUtils';
 
 import { Timestamp } from 'firebase/firestore';
 
@@ -102,7 +103,7 @@ export function TaskCard({ task, onToggle, onEdit, onDelete }: TaskCardProps) {
             {task.dueTime && (
               <span className="flex items-center gap-1 text-gray-500">
                 <Clock size={12} />
-                {task.dueTime}
+                {formatTime12Hour(task.dueTime)}
               </span>
             )}
 

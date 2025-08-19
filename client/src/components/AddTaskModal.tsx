@@ -12,6 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { CalendarIcon, Clock, Plus, Bell, Send } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { formatTime12Hour } from '@/lib/timeUtils';
 import { Timestamp } from 'firebase/firestore';
 
 interface AddTaskModalProps {
@@ -207,7 +208,7 @@ export default function AddTaskModal({ trigger, onSuccess }: AddTaskModalProps) 
             />
             {formData.dueTime && (
               <p className="text-sm text-muted-foreground">
-                ⏰ You'll get notified at {formData.dueTime} and 1 minute after
+                ⏰ You'll get notified at {formatTime12Hour(formData.dueTime)} and 1 minute after
               </p>
             )}
           </div>
