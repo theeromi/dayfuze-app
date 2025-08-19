@@ -11,11 +11,22 @@ export function NotificationSettings() {
   const [permission, setPermission] = useState<NotificationPermission>('default');
 
   useEffect(() => {
-    setPermission(Notification.permission);
-    setNotificationsEnabled(Notification.permission === 'granted');
+    // Check if Notification API is available
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setPermission(Notification.permission);
+      setNotificationsEnabled(Notification.permission === 'granted');
+    } else {
+      setPermission('denied');
+      setNotificationsEnabled(false);
+    }
   }, []);
 
   const handleEnableNotifications = async () => {
+    // Check if Notification API is available
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      return;
+    }
+
     if (Notification.permission === 'granted') {
       setNotificationsEnabled(true);
       await NotificationManager.showTestNotification();

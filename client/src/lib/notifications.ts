@@ -39,7 +39,7 @@ export class NotificationManager {
   }
 
   async scheduleTaskReminder(task: NotificationData): Promise<void> {
-    if (!this.registration || Notification.permission !== 'granted') {
+    if (!this.registration || typeof window === 'undefined' || !('Notification' in window) || Notification.permission !== 'granted') {
       console.warn('Notifications not available or permission denied');
       return;
     }
@@ -112,7 +112,7 @@ export class NotificationManager {
 
   // Show immediate notification for testing
   async showTestNotification(): Promise<void> {
-    if (Notification.permission === 'granted') {
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
       new Notification('DayFuse Test', {
         body: 'Push notifications are working!',
         icon: '/icon-192x192.png'
