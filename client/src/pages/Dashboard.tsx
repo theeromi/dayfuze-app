@@ -6,6 +6,7 @@ import Header from '@/components/ui/Header';
 import TaskSummary from '@/components/ui/TaskSummary';
 import SearchBar from '@/components/ui/SearchBar';
 import TodaysTasksHorizontal from '@/components/ui/TodaysTasksHorizontal';
+import AddTaskModal from '@/components/AddTaskModal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { PlusCircle, CheckSquare, Clock, List } from 'lucide-react';
@@ -86,15 +87,16 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card 
-            className="cursor-pointer hover:shadow-lg transition-all hover:scale-105"
-            onClick={() => navigate('/tasks')}
-          >
-            <CardContent className="flex flex-col items-center justify-center p-6 space-y-2">
-              <PlusCircle className="h-8 w-8 text-accent-red" />
-              <span className="font-medium">Add Task</span>
-            </CardContent>
-          </Card>
+          <AddTaskModal 
+            trigger={
+              <Card className="cursor-pointer hover:shadow-lg transition-all hover:scale-105">
+                <CardContent className="flex flex-col items-center justify-center p-6 space-y-2">
+                  <PlusCircle className="h-8 w-8 text-accent-red" />
+                  <span className="font-medium">Add Task</span>
+                </CardContent>
+              </Card>
+            }
+          />
         </div>
 
         {/* Task Summary */}
