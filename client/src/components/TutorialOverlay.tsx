@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useTutorial } from '@/contexts/TutorialContext';
+import { useMobile } from '@/hooks/useMobile';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { X, ChevronLeft, ChevronRight, SkipForward, Star, CheckCircle2 } from 'lucide-react';
@@ -13,6 +14,7 @@ interface HighlightPosition {
 
 export default function TutorialOverlay() {
   const { tutorialState, nextStep, prevStep, skipTutorial, completeTutorial } = useTutorial();
+  const isMobile = useMobile();
   const [highlightPosition, setHighlightPosition] = useState<HighlightPosition | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -49,26 +51,32 @@ export default function TutorialOverlay() {
       let tooltipTop = 0;
       let tooltipLeft = 0;
 
-      switch (currentStep.position) {
-        case 'top':
-          tooltipTop = rect.top - 20;
-          tooltipLeft = rect.left + rect.width / 2;
-          break;
-        case 'bottom':
-          tooltipTop = rect.bottom + 20;
-          tooltipLeft = rect.left + rect.width / 2;
-          break;
-        case 'left':
-          tooltipTop = rect.top + rect.height / 2;
-          tooltipLeft = rect.left - 20;
-          break;
-        case 'right':
-          tooltipTop = rect.top + rect.height / 2;
-          tooltipLeft = rect.right + 20;
-          break;
-        default: // center
-          tooltipTop = window.innerHeight / 2;
-          tooltipLeft = window.innerWidth / 2;
+      if (isMobile) {
+        // On mobile, position tooltip at bottom with safe area padding
+        tooltipTop = window.innerHeight - 220; // Fixed position from bottom with more padding
+        tooltipLeft = window.innerWidth / 2; // Center horizontally
+      } else {
+        switch (currentStep.position) {
+          case 'top':
+            tooltipTop = rect.top - 20;
+            tooltipLeft = rect.left + rect.width / 2;
+            break;
+          case 'bottom':
+            tooltipTop = rect.bottom + 20;
+            tooltipLeft = rect.left + rect.width / 2;
+            break;
+          case 'left':
+            tooltipTop = rect.top + rect.height / 2;
+            tooltipLeft = rect.left - 20;
+            break;
+          case 'right':
+            tooltipTop = rect.top + rect.height / 2;
+            tooltipLeft = rect.right + 20;
+            break;
+          default: // center
+            tooltipTop = window.innerHeight / 2;
+            tooltipLeft = window.innerWidth / 2;
+        }
       }
 
       setTooltipPosition({ top: tooltipTop, left: tooltipLeft });
@@ -89,7 +97,7 @@ export default function TutorialOverlay() {
     };
   }, [tutorialState.isActive, currentStep]);
 
-  // Auto-scroll to highlighted element
+  // Auto-scroll to highlighted element with mobile optimization
   useEffect(() => {
     if (!tutorialState.isActive || !currentStep || currentStep.target === 'body') return;
 
@@ -97,9 +105,16 @@ export default function TutorialOverlay() {
     if (targetElement) {
       targetElement.scrollIntoView({
         behavior: 'smooth',
-        block: 'center',
+        block: isMobile ? 'start' : 'center', // Scroll to top on mobile for better visibility
         inline: 'center'
       });
+      
+      // On mobile, add extra delay to ensure proper positioning
+      if (isMobile) {
+        setTimeout(() => {
+          window.scrollBy(0, -100); // Add some padding from top on mobile
+        }, 300);
+      }
     }
   }, [tutorialState.currentStep, tutorialState.isActive, currentStep]);
 
@@ -120,6 +135,11 @@ export default function TutorialOverlay() {
   }
 
   const getTooltipTransform = () => {
+    if (isMobile) {
+      // On mobile, always position tooltip at bottom of screen for better UX
+      return 'translate(-50%, 0)';
+    }
+    
     let transform = 'translate(-50%, -50%)';
     
     switch (currentStep.position) {
@@ -167,13 +187,16 @@ export default function TutorialOverlay() {
 
       {/* Tutorial tooltip */}
       <Card
-        className="absolute max-w-sm shadow-2xl border-2 border-blue-200 dark:border-blue-700 bg-white dark:bg-gray-900"
+        className={`absolute shadow-2xl border-2 border-blue-200 dark:border-blue-700 bg-white dark:bg-gray-900 ${
+          isMobile ? 'mx-4' : ''
+        }`}
         style={{
           top: tooltipPosition.top,
           left: tooltipPosition.left,
           transform: getTooltipTransform(),
-          maxWidth: '320px',
-          minWidth: '280px'
+          maxWidth: isMobile ? 'calc(100vw - 32px)' : '320px',
+          minWidth: isMobile ? 'calc(100vw - 32px)' : '280px',
+          zIndex: 10000
         }}
       >
         <CardHeader className="pb-3">
@@ -214,24 +237,25 @@ export default function TutorialOverlay() {
           </div>
 
           {/* Navigation buttons */}
-          <div className="flex gap-2 justify-between">
-            <div className="flex gap-2">
+          <div className={`flex gap-2 justify-between ${isMobile ? 'flex-col' : ''}`}>
+            <div className={`flex gap-2 ${isMobile ? 'order-2' : ''}`}>
               {!isFirstStep && (
                 <Button
                   onClick={prevStep}
                   variant="outline"
-                  size="sm"
+                  size={isMobile ? "default" : "sm"}
+                  className="flex items-center gap-1 flex-1 sm:flex-none"
                   data-testid="button-tutorial-prev"
                 >
-                  <ChevronLeft className="h-3 w-3 mr-1" />
+                  <ChevronLeft className="h-3 w-3" />
                   Back
                 </Button>
               )}
               <Button
                 onClick={handleSkip}
                 variant="ghost"
-                size="sm"
-                className="text-gray-500"
+                size={isMobile ? "default" : "sm"}
+                className="text-gray-500 flex-1 sm:flex-none"
                 data-testid="button-tutorial-skip"
               >
                 <SkipForward className="h-3 w-3 mr-1" />
@@ -241,19 +265,21 @@ export default function TutorialOverlay() {
 
             <Button
               onClick={handleNext}
-              size="sm"
-              className="bg-blue-500 hover:bg-blue-600"
+              size={isMobile ? "default" : "sm"}
+              className={`bg-blue-500 hover:bg-blue-600 text-white flex items-center gap-1 ${
+                isMobile ? 'w-full order-1 mb-2' : ''
+              }`}
               data-testid="button-tutorial-next"
             >
               {isLastStep ? (
                 <>
-                  <CheckCircle2 className="h-3 w-3 mr-1" />
-                  Finish
+                  <CheckCircle2 className="h-3 w-3" />
+                  Complete Tutorial
                 </>
               ) : (
                 <>
-                  Next
-                  <ChevronRight className="h-3 w-3 ml-1" />
+                  Continue Tour
+                  <ChevronRight className="h-3 w-3" />
                 </>
               )}
             </Button>

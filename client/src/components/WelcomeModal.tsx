@@ -36,8 +36,8 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl p-0 overflow-hidden">
-        <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950 dark:via-indigo-950 dark:to-purple-950 p-8">
+      <DialogContent className="max-w-2xl p-0 overflow-hidden sm:max-w-lg max-w-[95vw]">
+        <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950 dark:via-indigo-950 dark:to-purple-950 p-4 sm:p-8">
           <DialogHeader className="text-center mb-6">
             <div className="flex items-center justify-center mb-4">
               <div className="bg-blue-500 p-3 rounded-full">
@@ -52,7 +52,7 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
             </p>
           </DialogHeader>
 
-          <div className="grid md:grid-cols-2 gap-4 mb-6">
+          <div className="grid sm:grid-cols-2 gap-4 mb-6">
             <Card 
               className={`cursor-pointer transition-all hover:shadow-lg border-2 ${
                 selectedOption === 'tutorial' 
