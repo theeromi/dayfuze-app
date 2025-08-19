@@ -124,7 +124,7 @@ export default function UpdatePrompt() {
               {getIcon()}
               <span>{getTitle()}</span>
               {!isOnline && (
-                <WifiOff className="h-3 w-3 text-gray-400" title="Offline" />
+                <WifiOff className="h-3 w-3 text-gray-400" />
               )}
             </div>
             

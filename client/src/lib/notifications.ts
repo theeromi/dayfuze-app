@@ -91,19 +91,19 @@ class NotificationManager {
         badge: '/icon-72x72.svg',
         tag: `task-${taskId}`,
         requireInteraction: true,
-        vibrate: [200, 100, 200], // For mobile devices
-        actions: [
-          {
-            action: 'complete',
-            title: '✅ Mark Complete',
-            icon: '/icon-72x72.svg'
-          },
-          {
-            action: 'snooze',
-            title: '⏰ Snooze 10min',
-            icon: '/icon-72x72.svg'
-          }
-        ]
+        // vibrate: [200, 100, 200], // For mobile devices - TypeScript compatibility
+        // actions: [
+        //   {
+        //     action: 'complete',
+        //     title: '✅ Mark Complete',
+        //     icon: '/icon-72x72.svg'
+        //   },
+        //   {
+        //     action: 'snooze',
+        //     title: '⏰ Snooze 10min',
+        //     icon: '/icon-72x72.svg'
+        //   }
+        // ] // Commented out for TypeScript compatibility
       });
 
       notification.onclick = () => {
