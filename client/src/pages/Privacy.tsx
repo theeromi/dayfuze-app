@@ -1,4 +1,4 @@
-import React from 'react';
+
 import Header from '../components/ui/Header';
 import Footer from '../components/ui/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
