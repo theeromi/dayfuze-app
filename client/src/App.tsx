@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { TaskProvider } from "@/contexts/TaskContext";
+import { CelebrationProvider } from "@/contexts/CelebrationContext";
 import Dashboard from "@/pages/Dashboard";
 import Tasks from "@/pages/Tasks";
 import Timeline from "@/pages/Timeline";
@@ -13,6 +14,7 @@ import Login from "@/pages/Login";
 import NotFound from "@/pages/not-found";
 import { useEffect } from "react";
 import NotificationManager from "@/lib/notifications";
+import { MilestoneCelebration } from "@/components/MilestoneCelebration";
 
 function AppRoutes() {
   const { currentUser, loading } = useAuth();
@@ -37,15 +39,18 @@ function AppRoutes() {
   }
 
   return (
-    <TaskProvider>
-      <Switch>
-        <Route path="/" component={Dashboard} />
-        <Route path="/tasks" component={Tasks} />
-        <Route path="/timeline" component={Timeline} />
-        <Route path="/profile" component={Profile} />
-        <Route component={NotFound} />
-      </Switch>
-    </TaskProvider>
+    <CelebrationProvider>
+      <TaskProvider>
+        <Switch>
+          <Route path="/" component={Dashboard} />
+          <Route path="/tasks" component={Tasks} />
+          <Route path="/timeline" component={Timeline} />
+          <Route path="/profile" component={Profile} />
+          <Route component={NotFound} />
+        </Switch>
+        <MilestoneCelebration />
+      </TaskProvider>
+    </CelebrationProvider>
   );
 }
 

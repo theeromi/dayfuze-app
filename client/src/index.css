@@ -184,3 +184,64 @@
 .animate-slide-up {
   animation: slide-up 0.3s ease-out;
 }
+
+/* Confetti animations for task completion celebration */
+@keyframes confetti-1 {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-200px) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes confetti-2 {
+  0% {
+    transform: translateY(0) rotate(0deg) translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-150px) rotate(-360deg) translateX(100px);
+    opacity: 0;
+  }
+}
+
+@keyframes confetti-3 {
+  0% {
+    transform: translateY(0) rotate(0deg) translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-180px) rotate(180deg) translateX(-80px);
+    opacity: 0;
+  }
+}
+
+@keyframes confetti-4 {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-220px) rotate(-180deg);
+    opacity: 0;
+  }
+}
+
+.animate-confetti-1 {
+  animation: confetti-1 2s ease-out forwards;
+}
+
+.animate-confetti-2 {
+  animation: confetti-2 2s ease-out forwards;
+}
+
+.animate-confetti-3 {
+  animation: confetti-3 2s ease-out forwards;
+}
+
+.animate-confetti-4 {
+  animation: confetti-4 2s ease-out forwards;
+}

@@ -3,6 +3,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Task } from "@/contexts/TaskContext";
 import { format } from "date-fns";
+import { useState } from "react";
+import { TaskCompletionCelebration } from "./TaskCompletionCelebration";
 
 interface TaskCardProps {
   task: Task;
@@ -13,6 +15,8 @@ interface TaskCardProps {
 }
 
 export function TaskCard({ task, onToggleComplete, onEdit, onDelete, showActions = false }: TaskCardProps) {
+  const [showCelebration, setShowCelebration] = useState(false);
+  
   const priorityColors = {
     high: "border-accent-red bg-red-100 text-accent-red",
     medium: "border-accent-yellow bg-yellow-100 text-accent-yellow",
@@ -46,7 +50,13 @@ export function TaskCard({ task, onToggleComplete, onEdit, onDelete, showActions
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onToggleComplete(task.id)}
+            onClick={() => {
+              // Show celebration if task is being completed (not uncompleted)
+              if (!task.completed) {
+                setShowCelebration(true);
+              }
+              onToggleComplete(task.id);
+            }}
             className={`p-1 ${task.completed ? "text-accent-green" : "text-gray-400 hover:text-gray-600"}`}
             data-testid={`button-toggle-${task.id}`}
           >
@@ -104,6 +114,13 @@ export function TaskCard({ task, onToggleComplete, onEdit, onDelete, showActions
           )}
         </div>
       </CardContent>
+      
+      {/* Task Completion Celebration */}
+      <TaskCompletionCelebration
+        show={showCelebration}
+        taskTitle={task.title}
+        onComplete={() => setShowCelebration(false)}
+      />
     </Card>
   );
 }

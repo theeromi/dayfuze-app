@@ -172,9 +172,28 @@ export function TaskProvider({ children }: TaskProviderProps) {
         completed: newCompleted,
         status: newCompleted ? "done" : "todo",
       });
+
+      // Trigger milestone celebrations when tasks are completed
+      if (newCompleted) {
+        checkMilestones();
+      }
     } catch (error) {
       console.error("Error toggling task completion:", error);
       throw error;
+    }
+  };
+
+  const checkMilestones = () => {
+    const completedTasks = tasks.filter(task => task.completed);
+    const completedCount = completedTasks.length + 1; // +1 for the task being completed
+    
+    // Check for milestone celebrations
+    const milestones = [5, 10, 25, 50, 100];
+    if (milestones.includes(completedCount)) {
+      // Dispatch custom event for milestone celebration
+      window.dispatchEvent(new CustomEvent('milestone-reached', { 
+        detail: { count: completedCount } 
+      }));
     }
   };
 
