@@ -74,7 +74,7 @@ export default function Dashboard() {
   const displayName = currentUser.displayName || currentUser.email?.split('@')[0] || 'User';
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" data-testid="page-dashboard">
       <Header />
       
       <main className="container mx-auto px-4 py-6 space-y-8">

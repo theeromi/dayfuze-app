@@ -2,10 +2,13 @@
 import { Route, Switch } from 'wouter';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import UpdatePrompt from '@/components/UpdatePrompt';
+import TutorialOverlay from '@/components/TutorialOverlay';
+import FirstTimeUserDetector from '@/components/FirstTimeUserDetector';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { TaskProvider } from '@/contexts/TaskContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import { TutorialProvider } from '@/contexts/TutorialContext';
 
 // Pages
 import Login from '@/pages/Login';
@@ -32,9 +35,12 @@ export default function App() {
       <ThemeProvider>
         <AuthProvider>
           <NotificationProvider>
-            <TaskProvider>
+            <TutorialProvider>
+              <TaskProvider>
               <div className="min-h-screen bg-background text-foreground">
                 <UpdatePrompt />
+                <TutorialOverlay />
+                <FirstTimeUserDetector />
                 <Switch>
                   <Route path="/login" component={Login} />
                   <Route path="/tasks" component={Tasks} />
@@ -46,7 +52,8 @@ export default function App() {
                   <Route path="/" component={Dashboard} />
                 </Switch>
               </div>
-            </TaskProvider>
+              </TaskProvider>
+            </TutorialProvider>
           </NotificationProvider>
         </AuthProvider>
       </ThemeProvider>

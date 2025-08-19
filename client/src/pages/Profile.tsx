@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTask } from '@/contexts/TaskContext';
 import { useNotification } from '@/contexts/NotificationContext';
+import { useTutorial } from '@/contexts/TutorialContext';
 import { useLocation } from 'wouter';
 import Header from '../components/ui/Header';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
-import { User, Mail, Calendar, CheckSquare, Clock, Bell, BellOff, MessageCircle, Phone, Send, X, Lock, Trash2, AlertTriangle } from 'lucide-react';
+import { User, Mail, Calendar, CheckSquare, Clock, Bell, BellOff, MessageCircle, Phone, Send, X, Lock, Trash2, AlertTriangle, HelpCircle, Play } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -19,6 +20,7 @@ export default function Profile() {
   const { currentUser, loading: authLoading, handleLogout, changePassword, deleteAccount } = useAuth();
   const { tasks, loading: tasksLoading } = useTask();
   const { notificationsEnabled, requestPermission, scheduledNotifications } = useNotification();
+  const { startTutorial, resetTutorial, tutorialState } = useTutorial();
   const [, navigate] = useLocation();
   const [loggingOut, setLoggingOut] = useState(false);
   const [feedbackForm, setFeedbackForm] = useState({
@@ -694,6 +696,52 @@ export default function Profile() {
                 </div>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Help & Tutorial */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Help & Tutorial</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2">
+              <Button
+                onClick={startTutorial}
+                variant="outline"
+                className="w-full flex items-center gap-2 h-12"
+                data-testid="button-start-tutorial-profile"
+              >
+                <Play className="h-4 w-4" />
+                Start Tutorial
+              </Button>
+              
+              <Button
+                onClick={resetTutorial}
+                variant="outline"
+                className="w-full flex items-center gap-2 h-12"
+                data-testid="button-reset-tutorial"
+              >
+                <HelpCircle className="h-4 w-4" />
+                Reset Tutorial
+              </Button>
+            </div>
+            
+            {tutorialState.completed && (
+              <div className="mt-3 p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
+                <p className="text-sm text-green-800 dark:text-green-200">
+                  ✓ Tutorial completed! You can restart it anytime to refresh your memory.
+                </p>
+              </div>
+            )}
+            
+            {tutorialState.skipped && (
+              <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+                <p className="text-sm text-blue-800 dark:text-blue-200">
+                  Tutorial was skipped. Start it now to learn about DayFuse features.
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 

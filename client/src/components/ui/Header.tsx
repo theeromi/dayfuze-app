@@ -17,7 +17,7 @@ export default function Header() {
   ];
 
   return (
-    <header className="bg-background border-b border-border px-4 py-3">
+    <header className="bg-background border-b border-border px-4 py-3" data-testid="nav-header">
       <div className="flex items-center justify-between max-w-7xl mx-auto">
         <div className="flex items-center space-x-4">
           <Button 
