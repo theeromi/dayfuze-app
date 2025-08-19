@@ -1,6 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
+import { log } from "./vite";
 
 const app = express();
 app.use(express.json());
@@ -47,8 +47,8 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // Serve the micro-motivational quotes demo directly
-  app.get('/', (req, res) => {
+  // Serve micro-motivational quotes demo - all routes
+  app.get('*', (req, res) => {
     res.send(`
 <!DOCTYPE html>
 <html lang="en">
