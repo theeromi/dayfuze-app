@@ -30,19 +30,19 @@ export default function Footer({ className = '' }: FooterProps) {
           {/* Links */}
           <div className="flex flex-wrap justify-center items-center space-x-6 text-sm">
             <Link href="/privacy">
-              <span className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors">
+              <a className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors">
                 Privacy Policy
-              </span>
+              </a>
             </Link>
             <Link href="/terms">
-              <span className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors">
+              <a className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors">
                 Terms of Service
-              </span>
+              </a>
             </Link>
-            <Link href="/contact">
-              <span className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors">
+            <Link href="/profile">
+              <a className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors">
                 Contact
-              </span>
+              </a>
             </Link>
           </div>
 

@@ -178,7 +178,7 @@ export default function Login() {
       </Card>
       </div>
       
-      <Footer />
+      <Footer className="bg-transparent border-t-0" />
     </div>
   );
 }
