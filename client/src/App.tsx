@@ -1,6 +1,7 @@
 
 import { Route, Switch } from 'wouter';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import UpdatePrompt from '@/components/UpdatePrompt';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { TaskProvider } from '@/contexts/TaskContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
@@ -33,6 +34,7 @@ export default function App() {
           <NotificationProvider>
             <TaskProvider>
               <div className="min-h-screen bg-background text-foreground">
+                <UpdatePrompt />
                 <Switch>
                   <Route path="/login" component={Login} />
                   <Route path="/tasks" component={Tasks} />

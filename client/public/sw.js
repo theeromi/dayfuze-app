@@ -1,31 +1,93 @@
 // Service Worker for push notifications and caching
-const CACHE_NAME = 'dayfuse-v1';
+const CACHE_NAME = 'dayfuse-v2';
 const urlsToCache = [
   '/',
   '/static/js/bundle.js',
   '/static/css/main.css',
-  '/manifest.json'
+  '/manifest.json',
+  '/icon-72x72.svg',
+  '/icon-192x192.svg',
+  '/icon-512x512.svg'
 ];
 
 // Install service worker and cache resources
 self.addEventListener('install', event => {
+  // Skip waiting to activate immediately
+  self.skipWaiting();
+  
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(urlsToCache))
+      .catch(err => console.warn('Cache install failed:', err))
   );
 });
 
-// Fetch from cache when offline
+// Activate and clean up old caches
+self.addEventListener('activate', event => {
+  // Claim all clients immediately
+  self.clients.claim();
+  
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          // Delete old caches
+          if (cacheName !== CACHE_NAME) {
+            console.log('Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+  
+  // Notify all clients about the update
+  self.clients.matchAll().then(clients => {
+    clients.forEach(client => {
+      client.postMessage({
+        type: 'SW_UPDATED',
+        message: 'DayFuse has been updated! Refresh to get the latest features.'
+      });
+    });
+  });
+});
+
+// Fetch strategy: Network first, then cache
 self.addEventListener('fetch', event => {
+  // Skip cross-origin requests
+  if (!event.request.url.startsWith(self.location.origin)) {
+    return;
+  }
+
   event.respondWith(
-    caches.match(event.request)
+    fetch(event.request)
       .then(response => {
-        if (response) {
-          return response;
+        // Only cache successful responses
+        if (response.ok) {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, responseClone);
+          });
         }
-        return fetch(event.request);
-      }
-    )
+        return response;
+      })
+      .catch(() => {
+        // Network failed, try cache
+        return caches.match(event.request)
+          .then(cachedResponse => {
+            if (cachedResponse) {
+              return cachedResponse;
+            }
+            // If no cache, return offline page or error
+            return new Response(
+              JSON.stringify({ error: 'Offline - please check your connection' }),
+              { 
+                status: 503,
+                headers: { 'Content-Type': 'application/json' }
+              }
+            );
+          });
+      })
   );
 });
 

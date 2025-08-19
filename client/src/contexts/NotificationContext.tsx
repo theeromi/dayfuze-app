@@ -38,8 +38,8 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
       setNotificationsEnabled(Notification.permission === 'granted');
     }
 
-    // Register service worker for notifications
-    if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+    // Register service worker for notifications (only in production)
+    if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
       navigator.serviceWorker.register('/sw.js')
         .then((registration) => {
           console.log('SW registered: ', registration);
