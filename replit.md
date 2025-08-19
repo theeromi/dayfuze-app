@@ -11,6 +11,8 @@ The application follows a modern full-stack architecture with a React frontend a
 ✓ **Notification Settings**: Added settings panel in Profile page for enabling/disabling notifications with permission handling
 ✓ **PWA Enhancement**: Enhanced Progressive Web App capabilities with proper manifest and service worker
 ✓ **Real-time Scheduling**: Tasks with due times automatically schedule push notifications on creation
+✓ **Voice Input Quick Add**: Implemented Web Speech API integration for voice-to-text task creation
+✓ **Enhanced FAB**: Updated floating action button with expandable options for quick voice input and full task creation
 
 # User Preferences
 
