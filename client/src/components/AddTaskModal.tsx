@@ -212,11 +212,12 @@ export default function AddTaskModal({ trigger, onSuccess }: AddTaskModalProps) 
             )}
           </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
+          <div className="flex justify-end space-x-3 pt-6 border-t border-border mt-6">
             <Button
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
+              className="px-6 py-3 text-base font-medium border-2 hover:bg-muted/50"
               data-testid="button-cancel"
             >
               Cancel
@@ -224,10 +225,17 @@ export default function AddTaskModal({ trigger, onSuccess }: AddTaskModalProps) 
             <Button
               type="submit"
               disabled={loading || !formData.title.trim()}
-              className="bg-day-blue hover:bg-day-blue/90"
+              className="bg-day-blue hover:bg-day-blue/90 px-8 py-3 text-base font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
               data-testid="button-save-task"
             >
-              {loading ? 'Adding...' : 'Add Task'}
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Adding Task...
+                </div>
+              ) : (
+                'Add Task'
+              )}
             </Button>
           </div>
         </form>

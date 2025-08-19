@@ -402,32 +402,34 @@ export default function Profile() {
                         data-testid="textarea-feedback-message"
                       />
                     </div>
-                    <div className="flex gap-2 pt-4">
-                      <Button
-                        type="submit"
-                        disabled={feedbackSending}
-                        className="flex-1 bg-day-blue hover:bg-day-blue/90"
-                        data-testid="button-send-feedback"
-                      >
-                        {feedbackSending ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
-                            Sending...
-                          </>
-                        ) : (
-                          <>
-                            <Send className="h-4 w-4 mr-2" />
-                            Send Feedback
-                          </>
-                        )}
-                      </Button>
+                    <div className="flex gap-3 pt-6 border-t border-border mt-6">
                       <Button
                         type="button"
                         variant="outline"
                         onClick={() => setFeedbackOpen(false)}
+                        className="flex-1 px-6 py-3 text-base font-medium border-2 hover:bg-muted/50"
                         data-testid="button-cancel-feedback"
                       >
-                        <X className="h-4 w-4" />
+                        <X className="h-4 w-4 mr-2" />
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={feedbackSending}
+                        className="flex-1 bg-day-blue hover:bg-day-blue/90 px-8 py-3 text-base font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                        data-testid="button-send-feedback"
+                      >
+                        {feedbackSending ? (
+                          <div className="flex items-center gap-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                            Sending Feedback...
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <Send className="h-4 w-4" />
+                            Send Feedback
+                          </div>
+                        )}
                       </Button>
                     </div>
                   </form>
@@ -506,32 +508,34 @@ export default function Profile() {
                         data-testid="textarea-contact-message"
                       />
                     </div>
-                    <div className="flex gap-2 pt-4">
-                      <Button
-                        type="submit"
-                        disabled={contactSending}
-                        className="flex-1 bg-day-blue hover:bg-day-blue/90"
-                        data-testid="button-send-contact"
-                      >
-                        {contactSending ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
-                            Sending...
-                          </>
-                        ) : (
-                          <>
-                            <Send className="h-4 w-4 mr-2" />
-                            Send Message
-                          </>
-                        )}
-                      </Button>
+                    <div className="flex gap-3 pt-6 border-t border-border mt-6">
                       <Button
                         type="button"
                         variant="outline"
                         onClick={() => setContactOpen(false)}
+                        className="flex-1 px-6 py-3 text-base font-medium border-2 hover:bg-muted/50"
                         data-testid="button-cancel-contact"
                       >
-                        <X className="h-4 w-4" />
+                        <X className="h-4 w-4 mr-2" />
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={contactSending}
+                        className="flex-1 bg-day-blue hover:bg-day-blue/90 px-8 py-3 text-base font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                        data-testid="button-send-contact"
+                      >
+                        {contactSending ? (
+                          <div className="flex items-center gap-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                            Sending Message...
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <Send className="h-4 w-4" />
+                            Send Message
+                          </div>
+                        )}
                       </Button>
                     </div>
                   </form>
