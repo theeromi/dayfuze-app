@@ -1,4 +1,5 @@
 import { createRoot } from "react-dom/client";
-import StandaloneQuoteDemo from "./StandaloneQuoteDemo";
+import App from "./App";
+import "./index.css";
 
-createRoot(document.getElementById("root")!).render(<StandaloneQuoteDemo />);
+createRoot(document.getElementById("root")!).render(<App />);
