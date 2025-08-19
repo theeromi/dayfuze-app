@@ -28,6 +28,7 @@ The application follows a mobile-first React Native architecture using Expo SDK,
 ✓ **Contact Form Integration**: Fully functional contact form with SendGrid email delivery to contact@romaintomlinson.com
 ✓ **Multi-Method Email Delivery**: Robust email system with SendGrid primary and multiple fallback methods ensuring 100% delivery
 ✓ **Calendar Integration**: Tasks automatically added to device calendar for enhanced notification reliability
+✓ **Recurring Tasks Feature**: Complete recurring task system with daily/weekly/monthly patterns, custom day selection, and automatic calendar integration
 
 ## Migration Status
 

@@ -36,10 +36,17 @@ export interface TaskInput {
   dueTime?: string;
 }
 
+export interface RecurringTaskInput extends TaskInput {
+  recurring: boolean;
+  recurringPattern: 'daily' | 'weekly' | 'monthly';
+  recurringDays?: string[]; // For weekly: ['monday', 'tuesday', etc.]
+  recurringEndDate?: Date;
+}
+
 interface TaskContextType {
   tasks: Task[];
   loading: boolean;
-  addTask: (task: TaskInput) => Promise<void>;
+  addTask: (task: TaskInput | RecurringTaskInput) => Promise<void>;
   editTask: (taskId: string, updates: Partial<TaskInput>) => Promise<void>;
   deleteTask: (taskId: string) => Promise<void>;
   toggleTaskCompletion: (taskId: string) => Promise<void>;
@@ -88,7 +95,20 @@ export function TaskProvider({ children }: TaskProviderProps) {
     return unsubscribe;
   }, [currentUser]);
 
-  const addTask = async (taskInput: TaskInput) => {
+  const addTask = async (taskInput: TaskInput | RecurringTaskInput) => {
+    if (!currentUser) throw new Error('User not authenticated');
+
+    // Check if this is a recurring task
+    const isRecurring = 'recurring' in taskInput && taskInput.recurring;
+    
+    if (isRecurring) {
+      await createRecurringTasks(taskInput as RecurringTaskInput);
+    } else {
+      await createSingleTask(taskInput);
+    }
+  };
+
+  const createSingleTask = async (taskInput: TaskInput) => {
     if (!currentUser) throw new Error('User not authenticated');
 
     const tasksRef = collection(db, 'users', currentUser.uid, 'tasks');
@@ -124,6 +144,98 @@ export function TaskProvider({ children }: TaskProviderProps) {
         description: taskInput.description
       });
     }
+  };
+
+  const createRecurringTasks = async (recurringInput: RecurringTaskInput) => {
+    if (!currentUser) return;
+
+    const { recurring, recurringPattern, recurringDays, recurringEndDate, ...baseTask } = recurringInput;
+    
+    // Generate recurring task instances for the next 3 months or until end date
+    const endDate = recurringEndDate || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000); // 3 months default
+    const startDate = baseTask.dueDate.toDate();
+    
+    const instances = generateRecurringInstances(startDate, endDate, recurringPattern, recurringDays);
+    
+    // Create each recurring task instance
+    for (const instanceDate of instances) {
+      const taskInput: TaskInput = {
+        ...baseTask,
+        title: `${baseTask.title} (${recurringPattern})`,
+        dueDate: Timestamp.fromDate(instanceDate),
+      };
+      
+      const tasksRef = collection(db, 'users', currentUser.uid, 'tasks');
+      const taskDoc = await addDoc(tasksRef, {
+        ...taskInput,
+        completed: false,
+        isRecurring: true,
+        recurringPattern,
+        createdAt: serverTimestamp(),
+      });
+
+      // Schedule notification if time is set
+      if (taskInput.dueTime) {
+        const taskDateTime = new Date(instanceDate);
+        const [hours, minutes] = taskInput.dueTime.split(':').map(Number);
+        taskDateTime.setHours(hours, minutes, 0, 0);
+
+        const { notificationManager } = await import('@/lib/notifications');
+        
+        await notificationManager.scheduleTaskReminder({
+          id: taskDoc.id,
+          title: taskInput.title,
+          dueTime: taskDateTime,
+          description: taskInput.description
+        });
+
+        // Also schedule a notification 1 minute after
+        const oneMinuteAfter = new Date(taskDateTime.getTime() + 60000);
+        await notificationManager.scheduleTaskReminder({
+          id: `${taskDoc.id}_reminder`,
+          title: `Follow-up: ${taskInput.title}`,
+          dueTime: oneMinuteAfter,
+          description: taskInput.description
+        });
+      }
+    }
+  };
+
+  const generateRecurringInstances = (
+    startDate: Date, 
+    endDate: Date, 
+    pattern: 'daily' | 'weekly' | 'monthly',
+    selectedDays?: string[]
+  ): Date[] => {
+    const instances: Date[] = [];
+    const current = new Date(startDate);
+
+    while (current <= endDate) {
+      if (pattern === 'daily') {
+        instances.push(new Date(current));
+        current.setDate(current.getDate() + 1);
+      } else if (pattern === 'weekly') {
+        if (selectedDays && selectedDays.length > 0) {
+          // Check if current day matches selected days
+          const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+          const currentDayName = dayNames[current.getDay()];
+          
+          if (selectedDays.includes(currentDayName)) {
+            instances.push(new Date(current));
+          }
+          current.setDate(current.getDate() + 1);
+        } else {
+          // Weekly on the same day
+          instances.push(new Date(current));
+          current.setDate(current.getDate() + 7);
+        }
+      } else if (pattern === 'monthly') {
+        instances.push(new Date(current));
+        current.setMonth(current.getMonth() + 1);
+      }
+    }
+
+    return instances;
   };
 
   const editTask = async (taskId: string, updates: Partial<TaskInput>) => {
