@@ -1,9 +1,8 @@
 // Service Worker for push notifications and caching
-const CACHE_NAME = 'dayfuse-v3';
+const CACHE_NAME = 'dayfuse-v5';
 const urlsToCache = [
   '/',
-  '/static/js/bundle.js',
-  '/static/css/main.css',
+  '/index.html',
   '/manifest.json',
   '/icon-72x72.svg',
   '/icon-192x192.svg',
@@ -26,12 +25,13 @@ self.addEventListener('install', event => {
       })
       .then(() => {
         console.log('Service Worker: Installation complete');
-        // Don't skip waiting - let activation happen gracefully
         updateWaiting = true;
+        // Force immediate activation for PWA updates
+        self.skipWaiting();
       })
       .catch(err => {
         console.error('Service Worker: Cache install failed:', err);
-        throw err;
+        // Don't block installation on cache failures
       })
   );
 });
@@ -78,41 +78,69 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Fetch strategy: Network first, then cache
+// Fetch strategy: Network first for HTML, cache first for assets
 self.addEventListener('fetch', event => {
   // Skip cross-origin requests
   if (!event.request.url.startsWith(self.location.origin)) {
     return;
   }
 
-  event.respondWith(
-    fetch(event.request)
-      .then(response => {
-        // Only cache successful responses
-        if (response.ok) {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, responseClone);
-          });
-        }
-        return response;
-      })
-      .catch(() => {
-        // Network failed, try cache
-        return caches.match(event.request)
-          .then(cachedResponse => {
-            if (cachedResponse) {
-              return cachedResponse;
-            }
-            // If no cache, return offline page or error
-            return new Response(
-              JSON.stringify({ error: 'Offline - please check your connection' }),
-              { 
-                status: 503,
-                headers: { 'Content-Type': 'application/json' }
+  // For HTML documents, always try network first to avoid white screen
+  if (event.request.destination === 'document' || event.request.url.endsWith('/') || event.request.url.includes('.html')) {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          if (response.ok) {
+            // Update cache with fresh content
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, responseClone);
+            });
+            return response;
+          }
+          throw new Error('Network response not ok');
+        })
+        .catch(() => {
+          // Fallback to cache only if network fails
+          return caches.match(event.request)
+            .then(cachedResponse => cachedResponse || caches.match('/'))
+            .then(fallbackResponse => {
+              if (fallbackResponse) {
+                return fallbackResponse;
               }
-            );
-          });
+              // Last resort: return a basic HTML response
+              return new Response(`
+                <!DOCTYPE html>
+                <html>
+                  <head><title>DayFuse - Loading...</title></head>
+                  <body><div id="root">Loading DayFuse...</div></body>
+                </html>
+              `, { 
+                headers: { 'Content-Type': 'text/html' } 
+              });
+            });
+        })
+    );
+    return;
+  }
+
+  // For other resources, use cache first
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => {
+        if (response) {
+          return response;
+        }
+        
+        return fetch(event.request).then(fetchResponse => {
+          if (fetchResponse && fetchResponse.ok) {
+            const responseToCache = fetchResponse.clone();
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, responseToCache);
+            });
+          }
+          return fetchResponse;
+        });
       })
   );
 });

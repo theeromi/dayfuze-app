@@ -58,6 +58,30 @@ export default function UpdatePrompt() {
     updateManager.checkForUpdates();
   };
 
+  const handleClearCache = async () => {
+    try {
+      // Clear all caches
+      const cacheNames = await caches.keys();
+      await Promise.all(
+        cacheNames.map(cacheName => caches.delete(cacheName))
+      );
+      
+      // Unregister service worker
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const registration of registrations) {
+          await registration.unregister();
+        }
+      }
+      
+      // Force reload
+      window.location.href = window.location.href;
+    } catch (error) {
+      console.error('Cache clear failed:', error);
+      window.location.reload();
+    }
+  };
+
   if (!showUpdate) return null;
 
   const getIcon = () => {
@@ -176,19 +200,29 @@ export default function UpdatePrompt() {
           
           {/* Error state actions */}
           {updateState.error && (
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-2">
+                <Button 
+                  onClick={handleRetry} 
+                  size="sm" 
+                  variant="outline"
+                  className="flex-1"
+                  disabled={!isOnline}
+                >
+                  <RefreshCw className="h-3 w-3 mr-2" />
+                  Retry
+                </Button>
+                <Button onClick={handleDismiss} variant="ghost" size="sm">
+                  Dismiss
+                </Button>
+              </div>
               <Button 
-                onClick={handleRetry} 
-                size="sm" 
-                variant="outline"
-                className="flex-1"
-                disabled={!isOnline}
+                onClick={handleClearCache}
+                size="sm"
+                variant="destructive"
+                className="w-full text-xs"
               >
-                <RefreshCw className="h-3 w-3 mr-2" />
-                Retry
-              </Button>
-              <Button onClick={handleDismiss} variant="ghost" size="sm">
-                Dismiss
+                Clear Cache & Force Refresh
               </Button>
             </div>
           )}

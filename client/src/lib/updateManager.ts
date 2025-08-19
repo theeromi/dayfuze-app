@@ -45,8 +45,8 @@ export class UpdateManager {
    * Initialize the update manager
    */
   async initialize(): Promise<void> {
-    if (!('serviceWorker' in navigator) || process.env.NODE_ENV !== 'production') {
-      console.log('UpdateManager: Service Worker not available or not in production');
+    if (!('serviceWorker' in navigator)) {
+      console.log('UpdateManager: Service Worker not available');
       return;
     }
 
@@ -130,14 +130,25 @@ export class UpdateManager {
       this.registration.waiting.postMessage({ type: 'SKIP_WAITING' });
       
       // Set up controller change listener
-      const handleControllerChange = () => {
+      const handleControllerChange = async () => {
         console.log('UpdateManager: New service worker took control');
         this.updateState({ ready: true, installing: false });
         
-        // Auto-refresh after a short delay for better UX
+        // Clear all caches to prevent white screen
+        try {
+          const cacheNames = await caches.keys();
+          await Promise.all(
+            cacheNames.map(cacheName => caches.delete(cacheName))
+          );
+          console.log('UpdateManager: Caches cleared');
+        } catch (error) {
+          console.warn('UpdateManager: Cache clear failed:', error);
+        }
+        
+        // Force a hard reload to bypass all caches
         setTimeout(() => {
-          window.location.reload();
-        }, 1000);
+          window.location.href = window.location.href;
+        }, 500);
         
         navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
       };

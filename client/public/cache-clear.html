@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clear Cache - DayFuse</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      text-align: center;
+      padding: 50px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    .container {
+      max-width: 400px;
+      background: rgba(255,255,255,0.1);
+      padding: 30px;
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+    }
+    button {
+      background: #ff6b6b;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px;
+    }
+    button:hover {
+      background: #ff5252;
+    }
+    .success {
+      color: #4caf50;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧹 DayFuse Cache Cleaner</h1>
+    <p>If you're experiencing a white screen or update issues, click below to clear your app cache.</p>
+    
+    <button onclick="clearCacheAndReload()">Clear Cache & Reload</button>
+    <button onclick="forceReload()">Force Refresh</button>
+    
+    <div id="status"></div>
+    
+    <p><small>This will fix PWA caching issues and white screen problems.</small></p>
+  </div>
+
+  <script>
+    async function clearCacheAndReload() {
+      const status = document.getElementById('status');
+      status.innerHTML = 'Clearing cache...';
+      
+      try {
+        // Unregister all service workers
+        if ('serviceWorker' in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          for (const registration of registrations) {
+            await registration.unregister();
+          }
+        }
+        
+        // Clear all caches
+        const cacheNames = await caches.keys();
+        await Promise.all(
+          cacheNames.map(cacheName => caches.delete(cacheName))
+        );
+        
+        status.innerHTML = '<span class="success">Cache cleared! Redirecting...</span>';
+        
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1500);
+        
+      } catch (error) {
+        status.innerHTML = 'Error: ' + error.message;
+        console.error('Cache clear failed:', error);
+      }
+    }
+    
+    function forceReload() {
+      // Clear sessionStorage and localStorage
+      if (typeof(Storage) !== "undefined") {
+        sessionStorage.clear();
+        localStorage.clear();
+      }
+      
+      // Force reload with cache busting
+      window.location.href = window.location.origin + '?' + Date.now();
+    }
+  </script>
+</body>
+</html>
