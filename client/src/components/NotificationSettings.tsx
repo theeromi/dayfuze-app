@@ -28,6 +28,8 @@ export function NotificationSettings() {
     }
 
     if (Notification.permission === 'granted') {
+      // Ensure service worker is registered even if permission is already granted
+      await NotificationManager.initialize();
       setNotificationsEnabled(true);
       await NotificationManager.showTestNotification();
       return;

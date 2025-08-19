@@ -74,8 +74,8 @@ export class NotificationManager {
 
     const options: any = {
       body: `Time to work on: ${task.title}`,
-      icon: '/icon-192x192.png',
-      badge: '/icon-72x72.png',
+      icon: '/icon-192x192.svg',
+      badge: '/icon-72x72.svg',
       data: {
         taskId: task.taskId,
         dateOfArrival: Date.now()
@@ -112,11 +112,28 @@ export class NotificationManager {
 
   // Show immediate notification for testing
   async showTestNotification(): Promise<void> {
-    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-      new Notification('DayFuse Test', {
+    if (typeof window === 'undefined' || !('Notification' in window) || Notification.permission !== 'granted') {
+      return;
+    }
+
+    // Use service worker registration if available, otherwise fallback to direct Notification
+    if (this.registration) {
+      await this.registration.showNotification('DayFuse Test', {
         body: 'Push notifications are working!',
-        icon: '/icon-192x192.png'
+        icon: '/icon-192x192.svg',
+        badge: '/icon-72x72.svg',
+        tag: 'test-notification'
       });
+    } else {
+      // Fallback to direct notification (for environments without service worker)
+      try {
+        new Notification('DayFuse Test', {
+          body: 'Push notifications are working!',
+          icon: '/icon-192x192.svg'
+        });
+      } catch (error) {
+        console.warn('Direct notification failed, service worker registration may be required:', error);
+      }
     }
   }
 }
