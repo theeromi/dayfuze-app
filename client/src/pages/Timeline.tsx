@@ -17,8 +17,14 @@ export default function Timeline() {
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
   const selectedDateTasks = tasks.filter(task => {
-    const taskDate = task.dueDate.toDate();
-    return isSameDay(taskDate, selectedDate);
+    if (!task.dueDate) return false;
+    try {
+      const taskDate = task.dueDate.toDate();
+      return isSameDay(taskDate, selectedDate);
+    } catch (error) {
+      console.warn("Invalid dueDate for task:", task.id);
+      return false;
+    }
   });
 
   return (
@@ -43,7 +49,14 @@ export default function Timeline() {
           <div className="grid grid-cols-7 gap-1">
             {weekDays.map((day) => {
               const isSelected = isSameDay(day, selectedDate);
-              const dayTasks = tasks.filter(task => isSameDay(task.dueDate.toDate(), day));
+              const dayTasks = tasks.filter(task => {
+                if (!task.dueDate) return false;
+                try {
+                  return isSameDay(task.dueDate.toDate(), day);
+                } catch (error) {
+                  return false;
+                }
+              });
               
               return (
                 <Button

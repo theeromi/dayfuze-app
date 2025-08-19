@@ -68,7 +68,7 @@ export function TaskCard({ task, onToggleComplete, onEdit, onDelete, showActions
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-1">
               <Clock className="w-3 h-3" />
-              <span>{task.dueTime || format(task.dueDate.toDate(), "MMM dd")}</span>
+              <span>{task.dueTime || (task.dueDate ? format(task.dueDate.toDate(), "MMM dd") : "No date")}</span>
             </div>
             <div className="flex items-center space-x-1">
               <Flag className={`w-3 h-3 ${task.priority === "high" ? "text-accent-red" : task.priority === "medium" ? "text-accent-yellow" : "text-accent-green"}`} />

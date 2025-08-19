@@ -7,16 +7,28 @@ export function TaskSummary() {
   
   const currentMonth = format(new Date(), "yyyy-MM");
   const thisMonthTasks = tasks.filter(task => {
-    const taskDate = task.createdAt.toDate();
-    return format(taskDate, "yyyy-MM") === currentMonth;
+    if (!task.createdAt) return false;
+    try {
+      const taskDate = task.createdAt.toDate();
+      return format(taskDate, "yyyy-MM") === currentMonth;
+    } catch (error) {
+      console.warn("Invalid createdAt date for task:", task.id);
+      return false;
+    }
   });
   
   const completedTasks = thisMonthTasks.filter(task => task.completed);
   const overdueTasks = tasks.filter(task => {
-    const dueDate = task.dueDate.toDate();
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return dueDate < today && !task.completed;
+    if (!task.dueDate) return false;
+    try {
+      const dueDate = task.dueDate.toDate();
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return dueDate < today && !task.completed;
+    } catch (error) {
+      console.warn("Invalid dueDate for task:", task.id);
+      return false;
+    }
   });
   
   const completionRate = thisMonthTasks.length > 0 

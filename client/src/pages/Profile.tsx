@@ -23,10 +23,16 @@ export default function Profile() {
   const completedTasks = tasks.filter(task => task.completed);
   const pendingTasks = tasks.filter(task => !task.completed);
   const overdueTasks = tasks.filter(task => {
-    const dueDate = task.dueDate.toDate();
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return dueDate < today && !task.completed;
+    if (!task.dueDate) return false;
+    try {
+      const dueDate = task.dueDate.toDate();
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return dueDate < today && !task.completed;
+    } catch (error) {
+      console.warn("Invalid dueDate for task:", task.id);
+      return false;
+    }
   });
 
   const handleUpdateProfile = async () => {

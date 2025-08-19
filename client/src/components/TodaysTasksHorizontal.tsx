@@ -6,8 +6,14 @@ export function TodaysTasksHorizontal() {
   const { tasks, toggleTaskCompletion } = useTask();
 
   const todaysTasks = tasks.filter(task => {
-    const taskDate = task.dueDate.toDate();
-    return isToday(taskDate);
+    if (!task.dueDate) return false;
+    try {
+      const taskDate = task.dueDate.toDate();
+      return isToday(taskDate);
+    } catch (error) {
+      console.warn("Invalid dueDate for task:", task.id);
+      return false;
+    }
   });
 
   return (
