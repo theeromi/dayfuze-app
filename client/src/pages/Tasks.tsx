@@ -6,7 +6,8 @@ import { CategoryFilters } from "@/components/CategoryFilters";
 import { TaskCard } from "@/components/TaskCard";
 import { FAB } from "@/components/FAB";
 import { AddTaskModal } from "@/components/AddTaskModal";
-import { useTask } from "@/contexts/TaskContext";
+import { EditTaskModal } from "@/components/EditTaskModal";
+import { useTask, Task } from "@/contexts/TaskContext";
 import { useLocation } from "wouter";
 
 export default function Tasks() {
@@ -14,6 +15,8 @@ export default function Tasks() {
   const [, setLocation] = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [addTaskModalOpen, setAddTaskModalOpen] = useState(false);
+  const [editTaskModalOpen, setEditTaskModalOpen] = useState(false);
+  const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
 
@@ -35,8 +38,14 @@ export default function Tasks() {
         await deleteTask(taskId);
       } catch (error) {
         console.error("Failed to delete task:", error);
+        alert("Failed to delete task. Please try again.");
       }
     }
+  };
+
+  const handleEdit = (task: Task) => {
+    setTaskToEdit(task);
+    setEditTaskModalOpen(true);
   };
 
   return (
@@ -88,6 +97,7 @@ export default function Tasks() {
                   key={task.id}
                   task={task}
                   onToggleComplete={toggleTaskCompletion}
+                  onEdit={handleEdit}
                   onDelete={handleDelete}
                   showActions={true}
                 />
@@ -102,6 +112,12 @@ export default function Tasks() {
       <AddTaskModal
         open={addTaskModalOpen}
         onOpenChange={setAddTaskModalOpen}
+      />
+
+      <EditTaskModal
+        open={editTaskModalOpen}
+        onOpenChange={setEditTaskModalOpen}
+        task={taskToEdit}
       />
     </div>
   );
