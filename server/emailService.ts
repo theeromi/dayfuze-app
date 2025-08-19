@@ -16,7 +16,8 @@ export interface ContactFormData {
 
 export async function sendContactEmail(formData: ContactFormData): Promise<boolean> {
   if (!process.env.SENDGRID_API_KEY) {
-    throw new Error('SendGrid API key not configured');
+    console.warn('SendGrid API key not configured, skipping SendGrid email');
+    return false;
   }
 
   try {
