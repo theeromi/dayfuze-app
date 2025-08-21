@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { formatTime12Hour } from '@/lib/timeUtils';
 import { Timestamp } from 'firebase/firestore';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { MobileNotificationButton } from './MobileNotificationButton';
 
 interface AddTaskModalProps {
   trigger?: React.ReactNode;
@@ -339,23 +340,43 @@ export default function AddTaskModal({ trigger, onSuccess }: AddTaskModalProps) 
                 </div>
 
                 {formData.dueTime && (
-                  <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-md border border-blue-200 dark:border-blue-800">
-                    <p className="text-sm text-blue-700 dark:text-blue-300 flex items-center gap-2">
-                      <Bell className="h-4 w-4" />
-                      <strong>Enhanced Mobile Notifications:</strong>
-                    </p>
-                    <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
-                      • Push notifications at {formatTime12Hour(formData.dueTime)} + 1 min after
-                      <br />
-                      • Automatic calendar integration for mobile devices
-                      <br />
-                      • iOS/Android compatible notification fallbacks
-                      <br />
-                      • {formData.recurringPattern === 'daily' ? 'Every day' : 
-                          formData.recurringPattern === 'weekly' ? 
-                            (formData.recurringDays.length > 0 ? `${formData.recurringDays.join(', ')}` : 'Same day every week') :
-                            'Same date every month'}
-                    </p>
+                  <div className="space-y-3">
+                    <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-md border border-blue-200 dark:border-blue-800">
+                      <p className="text-sm text-blue-700 dark:text-blue-300 flex items-center gap-2">
+                        <Bell className="h-4 w-4" />
+                        <strong>Enhanced Mobile Notifications:</strong>
+                      </p>
+                      <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
+                        • Push notifications at {formatTime12Hour(formData.dueTime)} + 1 min after
+                        <br />
+                        • Automatic calendar integration for mobile devices
+                        <br />
+                        • iOS/Android compatible notification fallbacks
+                        <br />
+                        • {formData.recurringPattern === 'daily' ? 'Every day' : 
+                            formData.recurringPattern === 'weekly' ? 
+                              (formData.recurringDays.length > 0 ? `${formData.recurringDays.join(', ')}` : 'Same day every week') :
+                              'Same date every month'}
+                      </p>
+                    </div>
+                    
+                    {/* Mobile Calendar Download Preview */}
+                    <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded-md border border-green-200 dark:border-green-800">
+                      <p className="text-sm text-green-700 dark:text-green-300 flex items-center gap-2 mb-2">
+                        <CalendarDays className="h-4 w-4" />
+                        <strong>Mobile Calendar Backup Ready</strong>
+                      </p>
+                      <p className="text-xs text-green-600 dark:text-green-400 mb-2">
+                        After creating this task, you can download a calendar event for guaranteed mobile notifications.
+                      </p>
+                      <div className="opacity-75 pointer-events-none">
+                        <MobileNotificationButton
+                          taskId="preview"
+                          taskTitle={formData.title || "Your task"}
+                          dueTime={new Date(formData.dueDate.toDateString() + ' ' + formData.dueTime)}
+                        />
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>

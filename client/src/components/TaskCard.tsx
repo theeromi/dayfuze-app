@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, Star, Edit, Trash2, Check } from 'lucide-react';
+import { Calendar, Clock, Star, Edit, Trash2, Check, Download } from 'lucide-react';
+import { MobileNotificationButton } from './MobileNotificationButton';
 import { format } from 'date-fns';
 import { formatTime12Hour } from '@/lib/timeUtils';
 
@@ -105,6 +106,28 @@ export function TaskCard({ task, onToggle, onEdit, onDelete }: TaskCardProps) {
                 <Clock size={12} />
                 {formatTime12Hour(task.dueTime)}
               </span>
+            )}
+
+            {/* Mobile notification download for incomplete tasks with due times */}
+            {task.dueTime && task.status !== 'done' && !task.completed && (
+              <div className="flex items-center gap-1">
+                <Download size={10} className="text-green-600" />
+                <span className="text-green-600 text-xs cursor-pointer hover:underline"
+                      onClick={() => {
+                        const calendarData = localStorage.getItem(`calendar-backup-${task.id}`);
+                        if (calendarData) {
+                          const blob = new Blob([calendarData], { type: 'text/calendar' });
+                          const url = URL.createObjectURL(blob);
+                          const link = document.createElement('a');
+                          link.href = url;
+                          link.download = `dayfuse-${task.title.replace(/[^a-z0-9]/gi, '-')}.ics`;
+                          link.click();
+                          URL.revokeObjectURL(url);
+                        }
+                      }}>
+                  calendar
+                </span>
+              </div>
             )}
 
             {/* Tags */}
