@@ -1,5 +1,8 @@
-// Service Worker for push notifications and caching
-const CACHE_NAME = 'dayfuse-v5';
+// Enhanced Service Worker for push notifications and anti-blank screen caching
+const CACHE_NAME = 'dayfuse-v6-stable';
+const FALLBACK_HTML_URL = '/index.html';
+
+// Critical resources that prevent blank screens
 const urlsToCache = [
   '/',
   '/index.html',
@@ -8,6 +11,10 @@ const urlsToCache = [
   '/icon-192x192.svg',
   '/icon-512x512.svg'
 ];
+
+// Runtime cache names
+const RUNTIME_CACHE = 'dayfuse-runtime-v6';
+const HTML_CACHE = 'dayfuse-html-v6';
 
 // Update state management
 let updateWaiting = false;
@@ -85,38 +92,106 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // For HTML documents, always try network first to avoid white screen
+  // Enhanced HTML document handling with better blank screen prevention
   if (event.request.destination === 'document' || event.request.url.endsWith('/') || event.request.url.includes('.html')) {
     event.respondWith(
-      fetch(event.request)
+      // Race between network and timeout to prevent hanging
+      Promise.race([
+        fetch(event.request),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Network timeout')), 2000)
+        )
+      ])
         .then(response => {
-          if (response.ok) {
-            // Update cache with fresh content
+          // Validate response thoroughly
+          if (response && response.ok && response.status < 400) {
             const responseClone = response.clone();
-            caches.open(CACHE_NAME).then(cache => {
+            
+            // Cache successful responses
+            caches.open(HTML_CACHE).then(cache => {
               cache.put(event.request, responseClone);
-            });
+            }).catch(err => console.warn('HTML cache failed:', err));
+            
             return response;
           }
-          throw new Error('Network response not ok');
+          throw new Error(`Invalid response: ${response?.status}`);
         })
-        .catch(() => {
-          // Fallback to cache only if network fails
+        .catch((error) => {
+          console.log('Network failed, trying cache fallback:', error.message);
+          
+          // Enhanced fallback strategy
           return caches.match(event.request)
-            .then(cachedResponse => cachedResponse || caches.match('/'))
+            .then(cachedResponse => {
+              if (cachedResponse) {
+                console.log('Serving cached HTML:', event.request.url);
+                return cachedResponse;
+              }
+              
+              // Try different fallback routes for SPA
+              const fallbackUrls = ['/', '/index.html', FALLBACK_HTML_URL];
+              return fallbackUrls.reduce((promise, url) => {
+                return promise.then(response => {
+                  if (response) return response;
+                  return caches.match(url);
+                });
+              }, Promise.resolve(null));
+            })
             .then(fallbackResponse => {
               if (fallbackResponse) {
+                console.log('Serving fallback HTML for:', event.request.url);
                 return fallbackResponse;
               }
-              // Last resort: return a basic HTML response
-              return new Response(`
-                <!DOCTYPE html>
-                <html>
-                  <head><title>DayFuse - Loading...</title></head>
-                  <body><div id="root">Loading DayFuse...</div></body>
-                </html>
-              `, { 
-                headers: { 'Content-Type': 'text/html' } 
+              
+              // Ultimate fallback with loading state
+              console.log('No cache available, serving minimal HTML');
+              return new Response(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DayFuse - Loading...</title>
+  <style>
+    body { 
+      font-family: system-ui, sans-serif; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      height: 100vh; 
+      margin: 0;
+      background: #f5f5f5;
+    }
+    .loading { 
+      text-align: center; 
+      color: #5B7FFF;
+    }
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #5B7FFF;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="loading">
+    <div class="spinner"></div>
+    <h2>DayFuse</h2>
+    <p>Loading your productivity app...</p>
+    <script>
+      // Try to reload after a moment in case network comes back
+      setTimeout(() => window.location.reload(), 3000);
+    </script>
+  </div>
+</body>
+</html>`, { 
+                headers: { 'Content-Type': 'text/html; charset=utf-8' } 
               });
             });
         })

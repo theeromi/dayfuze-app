@@ -52,16 +52,23 @@ export default function TutorialOverlay() {
       let tooltipLeft = 0;
 
       if (isMobile) {
-        // On mobile, position tooltip at bottom with better safe area handling
-        const safeAreaBottom = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-bottom') || '0px');
-        const tooltipHeight = 200; // Estimated tooltip height
-        const padding = 20;
+        // Enhanced mobile positioning with better viewport handling
+        const safeAreaBottom = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-bottom') || '0px') || 20;
+        const viewportHeight = window.visualViewport?.height || window.innerHeight;
+        const tooltipHeight = 220; // Estimated tooltip height with padding
+        const bottomPadding = 30;
         
+        // Position tooltip to always be visible and accessible
         tooltipTop = Math.max(
-          window.innerHeight - tooltipHeight - safeAreaBottom - padding,
-          window.innerHeight * 0.7 // Don't go higher than 70% of screen
+          viewportHeight - tooltipHeight - safeAreaBottom - bottomPadding,
+          viewportHeight * 0.5 // Never go higher than middle of screen
         );
-        tooltipLeft = window.innerWidth / 2; // Center horizontally
+        
+        // Ensure tooltip stays within viewport width
+        tooltipLeft = Math.min(
+          Math.max(window.innerWidth / 2, 160), // Minimum 160px from left
+          window.innerWidth - 160 // Maximum 160px from right
+        );
       } else {
         switch (currentStep.position) {
           case 'top':
@@ -104,68 +111,101 @@ export default function TutorialOverlay() {
     };
   }, [tutorialState.isActive, currentStep]);
 
-  // Enhanced auto-scroll with mobile optimization and touch handling
+  // Completely rewritten mobile-first scroll handling with better iOS support
   useEffect(() => {
     if (!tutorialState.isActive || !currentStep || currentStep.target === 'body') return;
 
     const targetElement = document.querySelector(currentStep.target);
-    if (targetElement) {
-      // Improved mobile scroll handling without body lock issues
-      if (isMobile) {
-        // Store current scroll position
-        const scrollY = window.scrollY;
-        document.documentElement.style.setProperty('--scroll-y', `${scrollY}px`);
-        
-        // Apply mobile-friendly scroll prevention
-        document.body.style.overflow = 'hidden';
-        document.body.style.position = 'fixed';
-        document.body.style.top = `-${scrollY}px`;
-        document.body.style.width = '100%';
-      }
+    if (!targetElement) return;
 
-      // Enhanced mobile scrolling
-      const scrollToTarget = () => {
-        targetElement.scrollIntoView({
-          behavior: 'smooth',
-          block: isMobile ? 'start' : 'center',
-          inline: 'center'
-        });
-        
-        if (isMobile) {
-          // Better mobile positioning with viewport consideration
-          setTimeout(() => {
-            const rect = targetElement.getBoundingClientRect();
-            const viewportHeight = window.innerHeight;
-            const targetCenter = rect.top + rect.height / 2;
-            
-            // Only adjust if element is too close to bottom
-            if (targetCenter > viewportHeight * 0.6) {
-              window.scrollBy({
-                top: -Math.min(150, viewportHeight * 0.2),
-                behavior: 'smooth'
-              });
-            }
-          }, 200);
-        }
-      };
+    let originalScrollY = 0;
 
-      scrollToTarget();
+    if (isMobile) {
+      // Enhanced mobile scroll lock with proper iOS handling
+      originalScrollY = window.scrollY;
+      
+      // Store the scroll position in a way that works across refreshes
+      sessionStorage.setItem('tutorial-scroll-y', originalScrollY.toString());
+      
+      // Apply scroll lock with better iOS compatibility
+      document.body.style.cssText = `
+        position: fixed !important;
+        top: -${originalScrollY}px !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        overflow: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+      `;
+      
+      // Prevent iOS bounce
+      document.documentElement.style.overflow = 'hidden';
     }
 
-    // Enhanced cleanup for mobile scroll restoration
-    return () => {
+    // Improved scrolling with mobile considerations
+    const scrollToTarget = () => {
+      // Temporarily remove scroll lock for smooth scrolling
       if (isMobile) {
-        // Restore scroll position properly
-        const scrollY = document.documentElement.style.getPropertyValue('--scroll-y');
-        document.body.style.overflow = '';
         document.body.style.position = '';
         document.body.style.top = '';
-        document.body.style.width = '';
+        window.scrollTo(0, originalScrollY);
+      }
+
+      // Scroll to target
+      targetElement.scrollIntoView({
+        behavior: 'smooth',
+        block: isMobile ? 'start' : 'center',
+        inline: 'center'
+      });
+
+      // Mobile-specific adjustments
+      if (isMobile) {
+        setTimeout(() => {
+          const rect = targetElement.getBoundingClientRect();
+          const viewportHeight = window.innerHeight;
+          
+          // Ensure target is visible above tooltip area
+          if (rect.bottom > viewportHeight * 0.7) {
+            const scrollAdjustment = rect.bottom - (viewportHeight * 0.6);
+            window.scrollBy(0, scrollAdjustment);
+          }
+          
+          // Re-apply scroll lock after positioning
+          const newScrollY = window.scrollY;
+          sessionStorage.setItem('tutorial-scroll-y', newScrollY.toString());
+          
+          document.body.style.cssText = `
+            position: fixed !important;
+            top: -${newScrollY}px !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            overflow: hidden !important;
+            -webkit-overflow-scrolling: touch !important;
+          `;
+        }, 300);
+      }
+    };
+
+    // Delay scroll to ensure proper rendering
+    setTimeout(scrollToTarget, 100);
+
+    // Cleanup function with improved scroll restoration
+    return () => {
+      if (isMobile) {
+        // Restore all styles properly
+        document.body.style.cssText = '';
+        document.documentElement.style.overflow = '';
         
-        // Restore scroll position
-        if (scrollY) {
-          window.scrollTo(0, parseInt(scrollY || '0') * -1);
-        }
+        // Restore scroll position with fallback
+        const savedScrollY = sessionStorage.getItem('tutorial-scroll-y');
+        const scrollY = savedScrollY ? parseInt(savedScrollY) : originalScrollY;
+        
+        // Use setTimeout to ensure DOM is ready
+        setTimeout(() => {
+          window.scrollTo(0, scrollY);
+          sessionStorage.removeItem('tutorial-scroll-y');
+        }, 50);
       }
     };
   }, [tutorialState.currentStep, tutorialState.isActive, currentStep, isMobile]);
@@ -285,7 +325,11 @@ export default function TutorialOverlay() {
           </div>
         </CardHeader>
 
-        <CardContent className={`space-y-4 ${isMobile ? 'max-h-60 overflow-y-auto' : ''}`}>
+        <CardContent className={`space-y-4 ${isMobile ? 'max-h-48 overflow-y-auto overflow-x-hidden' : ''}`} 
+                     style={isMobile ? { 
+                       WebkitOverflowScrolling: 'touch',
+                       overscrollBehavior: 'contain'
+                     } : {}}>
           <p className="text-sm text-gray-600 dark:text-gray-400">
             {currentStep.content}
           </p>
