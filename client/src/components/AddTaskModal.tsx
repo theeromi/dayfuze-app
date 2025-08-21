@@ -14,6 +14,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { formatTime12Hour } from '@/lib/timeUtils';
 import { Timestamp } from 'firebase/firestore';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface AddTaskModalProps {
   trigger?: React.ReactNode;
@@ -113,12 +114,15 @@ export default function AddTaskModal({ trigger, onSuccess }: AddTaskModalProps) 
         )}
       </DialogTrigger>
       
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Add New Task</DialogTitle>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-[500px] max-w-[95vw] max-h-[95vh] p-0 flex flex-col">
+        <div className="p-4 sm:p-6 pb-0 flex-shrink-0">
+          <DialogHeader>
+            <DialogTitle>Add New Task</DialogTitle>
+          </DialogHeader>
+        </div>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <ScrollArea className="flex-1 p-4 sm:p-6 pt-4">
+          <form onSubmit={handleSubmit} className="space-y-4" id="task-form">
           <div className="space-y-2">
             <Label htmlFor="title">Title *</Label>
             <Input
@@ -356,20 +360,25 @@ export default function AddTaskModal({ trigger, onSuccess }: AddTaskModalProps) 
             )}
           </div>
 
-          <div className="flex justify-end space-x-3 pt-6 border-t border-border mt-6">
+          </form>
+        </ScrollArea>
+        
+        <div className="p-4 sm:p-6 pt-0 flex-shrink-0">
+          <div className="flex flex-col sm:flex-row sm:justify-end space-y-3 sm:space-y-0 sm:space-x-3 pt-4 border-t border-border">
             <Button
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
-              className="px-6 py-3 text-base font-medium border-2 hover:bg-muted/50"
+              className="px-6 py-3 text-base font-medium border-2 hover:bg-muted/50 w-full sm:w-auto"
               data-testid="button-cancel"
             >
               Cancel
             </Button>
             <Button
               type="submit"
+              form="task-form"
               disabled={loading || !formData.title.trim()}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-base font-semibold shadow-lg hover:shadow-xl"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-base font-semibold shadow-lg hover:shadow-xl w-full sm:w-auto"
               data-testid="button-save-task"
             >
               {loading ? (
@@ -385,7 +394,7 @@ export default function AddTaskModal({ trigger, onSuccess }: AddTaskModalProps) 
               )}
             </Button>
           </div>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );

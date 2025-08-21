@@ -4,6 +4,19 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Smooth scrolling for mobile devices */
+* {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Mobile scroll improvements */
+@media (max-width: 768px) {
+  .scroll-container {
+    overscroll-behavior: contain;
+  }
+}
+
 @layer base {
   :root {
     --day-blue: 203 100% 68%;    /* #5B7FFF */
