@@ -55,6 +55,21 @@
     overscroll-behavior: contain;
     scroll-behavior: smooth;
   }
+  
+  /* Dialog content scrolling fixes */
+  [role="dialog"] .overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    scroll-behavior: smooth;
+  }
+  
+  /* Ensure proper touch scrolling on iOS */
+  @supports (-webkit-touch-callout: none) {
+    [role="dialog"] .overflow-y-auto {
+      -webkit-overflow-scrolling: touch;
+      transform: translate3d(0, 0, 0);
+    }
+  }
 }
 
 @layer base {

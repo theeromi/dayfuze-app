@@ -16,6 +16,7 @@ import { formatTime12Hour } from '@/lib/timeUtils';
 import { Timestamp } from 'firebase/firestore';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MobileNotificationButton } from './MobileNotificationButton';
+import { ScrollableModal } from './ScrollableModal';
 
 interface AddTaskModalProps {
   trigger?: React.ReactNode;
@@ -115,18 +116,20 @@ export default function AddTaskModal({ trigger, onSuccess }: AddTaskModalProps) 
         )}
       </DialogTrigger>
       
-      <DialogContent className="sm:max-w-[500px] max-w-[95vw] max-h-[90vh] p-0 flex flex-col overflow-hidden">
+      <DialogContent className="sm:max-w-[500px] max-w-[95vw] max-h-[85vh] p-0 flex flex-col">
         <div className="p-4 sm:p-6 pb-0 flex-shrink-0">
           <DialogHeader>
             <DialogTitle>Add New Task</DialogTitle>
           </DialogHeader>
         </div>
         
-        <ScrollArea className="flex-1 p-4 sm:p-6 pt-4" style={{ 
-          WebkitOverflowScrolling: 'touch',
-          overscrollBehavior: 'contain',
-          maxHeight: 'calc(90vh - 140px)'
-        }}>
+        <ScrollableModal 
+          className="flex-1 p-4 sm:p-6 pt-4" 
+          style={{ 
+            maxHeight: 'calc(85vh - 120px)',
+            minHeight: '300px'
+          }}
+        >
           <form onSubmit={handleSubmit} className="space-y-4" id="task-form">
           <div className="space-y-2">
             <Label htmlFor="title">Title *</Label>
@@ -242,11 +245,7 @@ export default function AddTaskModal({ trigger, onSuccess }: AddTaskModalProps) 
           </div>
 
           {/* Recurring Task Section with enhanced mobile scrolling */}
-          <div className="space-y-4 p-4 bg-muted/20 rounded-lg border border-muted" 
-               style={{ 
-                 WebkitOverflowScrolling: 'touch',
-                 overscrollBehavior: 'contain'
-               }}>
+          <div className="space-y-4 p-4 bg-muted/20 rounded-lg border border-muted">
             <div className="flex items-center gap-3">
               <input
                 type="checkbox"
@@ -254,14 +253,27 @@ export default function AddTaskModal({ trigger, onSuccess }: AddTaskModalProps) 
                 checked={formData.recurring}
                 onChange={(e) => {
                   setFormData(prev => ({ ...prev, recurring: e.target.checked }));
-                  // Smooth scroll to show expanded content on mobile
-                  if (e.target.checked && window.innerWidth <= 768) {
+                  // Enhanced scroll to show expanded content
+                  if (e.target.checked) {
                     setTimeout(() => {
                       const recurringSection = document.getElementById('recurring-options');
-                      if (recurringSection) {
-                        recurringSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                      const modalContent = document.querySelector('[role="dialog"] .overflow-y-auto');
+                      
+                      if (recurringSection && modalContent) {
+                        // Scroll within the modal container
+                        const rect = recurringSection.getBoundingClientRect();
+                        const containerRect = modalContent.getBoundingClientRect();
+                        const scrollTop = modalContent.scrollTop;
+                        
+                        // Calculate scroll position to bring section into view
+                        const targetScroll = scrollTop + rect.top - containerRect.top - 100;
+                        
+                        modalContent.scrollTo({
+                          top: Math.max(0, targetScroll),
+                          behavior: 'smooth'
+                        });
                       }
-                    }, 100);
+                    }, 150);
                   }
                 }}
                 className="w-4 h-4 text-day-blue border-gray-300 rounded focus:ring-day-blue"
@@ -411,7 +423,7 @@ export default function AddTaskModal({ trigger, onSuccess }: AddTaskModalProps) 
           </div>
 
           </form>
-        </ScrollArea>
+        </ScrollableModal>
         
         <div className="p-4 sm:p-6 pt-0 flex-shrink-0">
           <div className="flex flex-col sm:flex-row sm:justify-end space-y-3 sm:space-y-0 sm:space-x-3 pt-4 border-t border-border">
