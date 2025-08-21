@@ -52,8 +52,15 @@ export default function TutorialOverlay() {
       let tooltipLeft = 0;
 
       if (isMobile) {
-        // On mobile, position tooltip at bottom with safe area padding
-        tooltipTop = window.innerHeight - 220; // Fixed position from bottom with more padding
+        // On mobile, position tooltip at bottom with better safe area handling
+        const safeAreaBottom = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-bottom') || '0px');
+        const tooltipHeight = 200; // Estimated tooltip height
+        const padding = 20;
+        
+        tooltipTop = Math.max(
+          window.innerHeight - tooltipHeight - safeAreaBottom - padding,
+          window.innerHeight * 0.7 // Don't go higher than 70% of screen
+        );
         tooltipLeft = window.innerWidth / 2; // Center horizontally
       } else {
         switch (currentStep.position) {
@@ -97,26 +104,71 @@ export default function TutorialOverlay() {
     };
   }, [tutorialState.isActive, currentStep]);
 
-  // Auto-scroll to highlighted element with mobile optimization
+  // Enhanced auto-scroll with mobile optimization and touch handling
   useEffect(() => {
     if (!tutorialState.isActive || !currentStep || currentStep.target === 'body') return;
 
     const targetElement = document.querySelector(currentStep.target);
     if (targetElement) {
-      targetElement.scrollIntoView({
-        behavior: 'smooth',
-        block: isMobile ? 'start' : 'center', // Scroll to top on mobile for better visibility
-        inline: 'center'
-      });
-      
-      // On mobile, add extra delay to ensure proper positioning
+      // Improved mobile scroll handling without body lock issues
       if (isMobile) {
-        setTimeout(() => {
-          window.scrollBy(0, -100); // Add some padding from top on mobile
-        }, 300);
+        // Store current scroll position
+        const scrollY = window.scrollY;
+        document.documentElement.style.setProperty('--scroll-y', `${scrollY}px`);
+        
+        // Apply mobile-friendly scroll prevention
+        document.body.style.overflow = 'hidden';
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${scrollY}px`;
+        document.body.style.width = '100%';
       }
+
+      // Enhanced mobile scrolling
+      const scrollToTarget = () => {
+        targetElement.scrollIntoView({
+          behavior: 'smooth',
+          block: isMobile ? 'start' : 'center',
+          inline: 'center'
+        });
+        
+        if (isMobile) {
+          // Better mobile positioning with viewport consideration
+          setTimeout(() => {
+            const rect = targetElement.getBoundingClientRect();
+            const viewportHeight = window.innerHeight;
+            const targetCenter = rect.top + rect.height / 2;
+            
+            // Only adjust if element is too close to bottom
+            if (targetCenter > viewportHeight * 0.6) {
+              window.scrollBy({
+                top: -Math.min(150, viewportHeight * 0.2),
+                behavior: 'smooth'
+              });
+            }
+          }, 200);
+        }
+      };
+
+      scrollToTarget();
     }
-  }, [tutorialState.currentStep, tutorialState.isActive, currentStep]);
+
+    // Enhanced cleanup for mobile scroll restoration
+    return () => {
+      if (isMobile) {
+        // Restore scroll position properly
+        const scrollY = document.documentElement.style.getPropertyValue('--scroll-y');
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        
+        // Restore scroll position
+        if (scrollY) {
+          window.scrollTo(0, parseInt(scrollY || '0') * -1);
+        }
+      }
+    };
+  }, [tutorialState.currentStep, tutorialState.isActive, currentStep, isMobile]);
 
   const handleNext = () => {
     if (isLastStep) {
@@ -163,11 +215,23 @@ export default function TutorialOverlay() {
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 pointer-events-auto"
-      style={{ zIndex: 9999 }}
+      className="fixed inset-0 z-50 pointer-events-auto overflow-hidden"
+      style={{ 
+        zIndex: 9999,
+        touchAction: 'none', // Prevent touch scrolling conflicts
+        WebkitOverflowScrolling: 'touch' // iOS smooth scrolling
+      }}
     >
-      {/* Semi-transparent backdrop */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      {/* Semi-transparent backdrop with mobile-safe touch handling */}
+      <div 
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm" 
+        style={{ 
+          touchAction: 'manipulation',
+          WebkitTouchCallout: 'none',
+          WebkitUserSelect: 'none',
+          userSelect: 'none'
+        }}
+      />
       
       {/* Highlight cutout */}
       {highlightPosition && (
@@ -185,7 +249,7 @@ export default function TutorialOverlay() {
         />
       )}
 
-      {/* Tutorial tooltip */}
+      {/* Tutorial tooltip with mobile-optimized positioning */}
       <Card
         className={`absolute shadow-2xl border-2 border-blue-200 dark:border-blue-700 bg-white dark:bg-gray-900 ${
           isMobile ? 'mx-4' : ''
@@ -196,7 +260,12 @@ export default function TutorialOverlay() {
           transform: getTooltipTransform(),
           maxWidth: isMobile ? 'calc(100vw - 32px)' : '320px',
           minWidth: isMobile ? 'calc(100vw - 32px)' : '280px',
-          zIndex: 10000
+          maxHeight: isMobile ? 'calc(100vh - 40px)' : 'auto',
+          zIndex: 10000,
+          // Mobile-specific optimizations
+          touchAction: 'manipulation',
+          WebkitOverflowScrolling: 'touch',
+          overflowY: isMobile ? 'auto' : 'visible'
         }}
       >
         <CardHeader className="pb-3">
@@ -216,7 +285,7 @@ export default function TutorialOverlay() {
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-4">
+        <CardContent className={`space-y-4 ${isMobile ? 'max-h-60 overflow-y-auto' : ''}`}>
           <p className="text-sm text-gray-600 dark:text-gray-400">
             {currentStep.content}
           </p>
