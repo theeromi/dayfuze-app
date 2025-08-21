@@ -8,7 +8,7 @@ import FirstTimeUserDetector from '@/components/FirstTimeUserDetector';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { TaskProvider } from '@/contexts/TaskContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
-import { ThemeProvider } from '@/contexts/ThemeContext';
+import { ThemeProvider } from '@/contexts/SimpleThemeContext';
 import { TutorialProvider } from '@/contexts/TutorialContext';
 
 // Pages
