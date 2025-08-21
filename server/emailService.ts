@@ -21,9 +21,12 @@ export async function sendContactEmail(formData: ContactFormData): Promise<boole
   }
 
   try {
+    // Debug the API key (first 10 chars only for security)
+    console.log('SendGrid API Key configured:', process.env.SENDGRID_API_KEY?.substring(0, 10) + '...');
+    
     const msg = {
       to: 'contact@romaintomlinson.com', // Your email
-      from: 'noreply@dayfuse.app', // Verified sender (you'll need to verify this domain with SendGrid)
+      from: 'contact@romaintomlinson.com', // Use your verified sender email
       replyTo: formData.email, // User's email for replies
       subject: `DayFuse Contact Form: ${formData.subject}`,
       text: `

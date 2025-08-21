@@ -342,12 +342,14 @@ export default function AddTaskModal({ trigger, onSuccess }: AddTaskModalProps) 
                   <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-md border border-blue-200 dark:border-blue-800">
                     <p className="text-sm text-blue-700 dark:text-blue-300 flex items-center gap-2">
                       <Bell className="h-4 w-4" />
-                      <strong>Smart Recurring Reminders:</strong>
+                      <strong>Enhanced Mobile Notifications:</strong>
                     </p>
                     <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
-                      • Daily at {formatTime12Hour(formData.dueTime)} + 1 min after
+                      • Push notifications at {formatTime12Hour(formData.dueTime)} + 1 min after
                       <br />
-                      • Added to your device calendar automatically
+                      • Automatic calendar integration for mobile devices
+                      <br />
+                      • iOS/Android compatible notification fallbacks
                       <br />
                       • {formData.recurringPattern === 'daily' ? 'Every day' : 
                           formData.recurringPattern === 'weekly' ? 

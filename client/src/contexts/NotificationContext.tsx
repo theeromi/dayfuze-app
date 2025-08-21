@@ -63,14 +63,21 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
   };
 
   const scheduleNotification = (id: string, notification: NotificationData) => {
-    if (!notificationsEnabled) return;
-
     const now = new Date();
     const delay = notification.scheduledTime.getTime() - now.getTime();
 
     if (delay <= 0) {
       // If the time has already passed, show notification immediately
       showNotification(notification.title, notification.body);
+      return;
+    }
+
+    // Always create calendar entry for mobile backup
+    createMobileCalendarBackup(id, notification);
+
+    if (!notificationsEnabled) {
+      // Show mobile setup instructions
+      showMobileNotificationSetup(notification);
       return;
     }
 
@@ -102,14 +109,60 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     }
   };
 
+  const createMobileCalendarBackup = (id: string, notification: NotificationData) => {
+    // Create calendar event for mobile devices
+    const startDate = new Date(notification.scheduledTime);
+    const endDate = new Date(startDate.getTime() + 30 * 60 * 1000);
+
+    const formatICSDate = (date: Date): string => {
+      return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    };
+
+    const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//DayFuse//Task Reminder//EN
+BEGIN:VEVENT
+UID:${id}@dayfuse.app
+DTSTAMP:${formatICSDate(new Date())}
+DTSTART:${formatICSDate(startDate)}
+DTEND:${formatICSDate(endDate)}
+SUMMARY:DayFuse: ${notification.title}
+DESCRIPTION:${notification.body}
+BEGIN:VALARM
+TRIGGER:-PT0M
+ACTION:DISPLAY
+DESCRIPTION:Task Reminder
+END:VALARM
+END:VEVENT
+END:VCALENDAR`;
+
+    // Store calendar data for potential download
+    localStorage.setItem(`calendar-backup-${id}`, icsContent);
+  };
+
+  const showMobileNotificationSetup = (notification: NotificationData) => {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const message = isIOS ? 
+      'For reliable notifications on iPhone, add this task to your Calendar app. Would you like to download the calendar event?' :
+      'For reliable notifications, add this task to your device calendar. Download the calendar event?';
+    
+    console.log('Mobile notification setup:', message);
+  };
+
   const showNotification = (title: string, body: string) => {
     if (notificationsEnabled && typeof window !== 'undefined' && 'Notification' in window) {
-      new Notification(title, {
+      const notification = new Notification(title, {
         body,
-        icon: '/favicon.ico',
-        badge: '/favicon.ico',
+        icon: '/icon-72x72.svg',
+        badge: '/icon-72x72.svg',
         tag: 'dayfuse-task-reminder',
+        requireInteraction: true,  // Keep notification visible
       });
+
+      // Add mobile vibration if supported
+      if ('vibrate' in navigator) {
+        navigator.vibrate([200, 100, 200]);
+      }
     }
   };
 

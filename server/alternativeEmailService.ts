@@ -5,20 +5,20 @@
 
 import { ContactFormData } from './emailService';
 
-// Simple logging email service for development
+// Enhanced logging email service for development
 export async function logEmailService(formData: ContactFormData): Promise<boolean> {
   try {
-    console.log('==========================================');
-    console.log('📧 CONTACT FORM SUBMISSION RECEIVED');
-    console.log('==========================================');
-    console.log(`📨 TO: contact@romaintomlinson.com`);
+    console.log('\n🚨 URGENT: CONTACT FORM SUBMISSION 🚨');
+    console.log('='.repeat(60));
+    console.log(`📧 TO: contact@romaintomlinson.com`);
     console.log(`👤 FROM: ${formData.name} <${formData.email}>`);
     console.log(`📋 SUBJECT: ${formData.subject}`);
-    console.log(`📅 DATE: ${new Date().toISOString()}`);
-    console.log('------------------------------------------');
+    console.log(`📅 DATE: ${new Date().toLocaleString()}`);
+    console.log(`📧 REPLY TO: ${formData.email}`);
+    console.log('='.repeat(60));
     console.log('💬 MESSAGE:');
     console.log(formData.message);
-    console.log('==========================================');
+    console.log('='.repeat(60));
     
     // Also write to a log file for persistence
     const fs = await import('fs');
