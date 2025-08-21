@@ -113,142 +113,141 @@ export default function AddTaskModal({ trigger, onSuccess }: AddTaskModalProps) 
         )}
       </DialogTrigger>
       
-      <DialogContent className="sm:max-w-[500px] max-h-[95vh] flex flex-col p-0">
-        <DialogHeader className="px-6 py-4 border-b border-border">
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
           <DialogTitle>Add New Task</DialogTitle>
         </DialogHeader>
         
-        <div className="flex-1 overflow-y-auto px-6 py-4">
-          <form id="add-task-form" onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="title">Title *</Label>
+            <Input
+              id="title"
+              placeholder="What needs to be done?"
+              value={formData.title}
+              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              required
+              data-testid="input-task-title"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              placeholder="Add details about your task..."
+              value={formData.description}
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              rows={3}
+              data-testid="input-task-description"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="title">Title *</Label>
-              <Input
-                id="title"
-                placeholder="What needs to be done?"
-                value={formData.title}
-                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                required
-                data-testid="input-task-title"
-              />
+              <Label>Priority</Label>
+              <Select
+                value={formData.priority}
+                onValueChange={(value: 'low' | 'medium' | 'high') =>
+                  setFormData(prev => ({ ...prev, priority: value }))
+                }
+              >
+                <SelectTrigger data-testid="select-priority">
+                  <SelectValue placeholder="Select priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                placeholder="Add details about your task..."
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                rows={3}
-                data-testid="input-task-description"
-              />
+              <Label>Status</Label>
+              <Select
+                value={formData.status}
+                onValueChange={(value: 'todo' | 'progress' | 'done') =>
+                  setFormData(prev => ({ ...prev, status: value }))
+                }
+              >
+                <SelectTrigger data-testid="select-status">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todo">To-Do</SelectItem>
+                  <SelectItem value="progress">In Progress</SelectItem>
+                  <SelectItem value="done">Done</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+          </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Priority</Label>
-                <Select
-                  value={formData.priority}
-                  onValueChange={(value: 'low' | 'medium' | 'high') =>
-                    setFormData(prev => ({ ...prev, priority: value }))
-                  }
+          <div className="space-y-2">
+            <Label>Due Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !formData.dueDate && "text-muted-foreground"
+                  )}
+                  data-testid="button-select-date"
                 >
-                  <SelectTrigger data-testid="select-priority">
-                    <SelectValue placeholder="Select priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={(value: 'todo' | 'progress' | 'done') =>
-                    setFormData(prev => ({ ...prev, status: value }))
-                  }
-                >
-                  <SelectTrigger data-testid="select-status">
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todo">To-Do</SelectItem>
-                    <SelectItem value="progress">In Progress</SelectItem>
-                    <SelectItem value="done">Done</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Due Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !formData.dueDate && "text-muted-foreground"
-                    )}
-                    data-testid="button-select-date"
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.dueDate ? format(formData.dueDate, "PPP") : "Pick a date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={formData.dueDate}
-                    onSelect={(date) => date && setFormData(prev => ({ ...prev, dueDate: date }))}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="dueTime" className="flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                Due Time (Optional)
-                {formData.dueTime && !notificationsEnabled && (
-                  <Bell className="h-4 w-4 text-yellow-500" />
-                )}
-              </Label>
-              <Input
-                id="dueTime"
-                type="time"
-                value={formData.dueTime}
-                onChange={(e) => setFormData(prev => ({ ...prev, dueTime: e.target.value }))}
-                data-testid="input-task-time"
-              />
-              {formData.dueTime && (
-                <p className="text-sm text-muted-foreground">
-                  ⏰ You'll get notified at {formatTime12Hour(formData.dueTime)} and 1 minute after
-                </p>
-              )}
-            </div>
-
-            {/* Recurring Task Section */}
-            <div className="space-y-4 p-4 bg-muted/20 rounded-lg border border-muted">
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  id="recurring"
-                  checked={formData.recurring}
-                  onChange={(e) => setFormData(prev => ({ ...prev, recurring: e.target.checked }))}
-                  className="w-4 h-4 text-day-blue border-gray-300 rounded focus:ring-day-blue"
-                  data-testid="checkbox-recurring"
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {formData.dueDate ? format(formData.dueDate, "PPP") : "Pick a date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={formData.dueDate}
+                  onSelect={(date) => date && setFormData(prev => ({ ...prev, dueDate: date }))}
+                  initialFocus
                 />
-                <Label htmlFor="recurring" className="flex items-center gap-2 cursor-pointer">
-                  <Repeat className="h-4 w-4 text-day-blue" />
-                  Make this a recurring task
-                </Label>
-              </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="dueTime" className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              Due Time (Optional)
+              {formData.dueTime && !notificationsEnabled && (
+                <Bell className="h-4 w-4 text-yellow-500" />
+              )}
+            </Label>
+            <Input
+              id="dueTime"
+              type="time"
+              value={formData.dueTime}
+              onChange={(e) => setFormData(prev => ({ ...prev, dueTime: e.target.value }))}
+              data-testid="input-task-time"
+            />
+            {formData.dueTime && (
+              <p className="text-sm text-muted-foreground">
+                ⏰ You'll get notified at {formatTime12Hour(formData.dueTime)} and 1 minute after
+              </p>
+            )}
+          </div>
+
+          {/* Recurring Task Section */}
+          <div className="space-y-4 p-4 bg-muted/20 rounded-lg border border-muted">
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="recurring"
+                checked={formData.recurring}
+                onChange={(e) => setFormData(prev => ({ ...prev, recurring: e.target.checked }))}
+                className="w-4 h-4 text-day-blue border-gray-300 rounded focus:ring-day-blue"
+                data-testid="checkbox-recurring"
+              />
+              <Label htmlFor="recurring" className="flex items-center gap-2 cursor-pointer">
+                <Repeat className="h-4 w-4 text-day-blue" />
+                Make this a recurring task
+              </Label>
+            </div>
 
             {formData.recurring && (
               <div className="space-y-4 pl-7">
@@ -357,11 +356,7 @@ export default function AddTaskModal({ trigger, onSuccess }: AddTaskModalProps) 
             )}
           </div>
 
-          </form>
-        </div>
-        
-        <div className="px-6 py-4 border-t border-border bg-background">
-          <div className="flex justify-end space-x-3">
+          <div className="flex justify-end space-x-3 pt-6 border-t border-border mt-6">
             <Button
               type="button"
               variant="outline"
@@ -373,7 +368,6 @@ export default function AddTaskModal({ trigger, onSuccess }: AddTaskModalProps) 
             </Button>
             <Button
               type="submit"
-              form="add-task-form"
               disabled={loading || !formData.title.trim()}
               className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-base font-semibold shadow-lg hover:shadow-xl"
               data-testid="button-save-task"
@@ -391,7 +385,7 @@ export default function AddTaskModal({ trigger, onSuccess }: AddTaskModalProps) 
               )}
             </Button>
           </div>
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
