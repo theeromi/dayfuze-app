@@ -1,87 +1,15 @@
 # Overview
 
-**DayFuse** has been completely transformed from a web-based PWA to a **cross-platform mobile app** built with Expo and React Native. This productivity-focused task management application now provides native mobile experiences across iOS and Android platforms, while maintaining the core functionality of task creation, organization, and tracking with Firebase integration.
+DayFuse is a dual-platform productivity solution, offering both a Progressive Web App (PWA) and native mobile apps built with Expo React Native. It provides a unified experience across web and mobile, utilizing a shared Firebase backend for real-time data synchronization. The project aims to deliver a robust and seamless task management experience to users on their preferred devices, combining the accessibility of a PWA with the rich features of native mobile applications.
 
-The application follows a mobile-first React Native architecture using Expo SDK, Firebase for authentication and real-time data synchronization, and modern React Native patterns for state management and navigation.
+## Key Capabilities
 
-## Recent Changes (August 21, 2025)
-
-✓ **Mobile App Store Preparation**: Complete PWA optimization for app store submission with enhanced manifest, additional icon sizes, and comprehensive submission guide
-✓ **PWA Enhancement**: Added app store specific manifest properties including display_override and improved descriptions for better store compatibility  
-✓ **Icon Set Expansion**: Created complete icon set (48x48, 72x72, 96x96, 144x144, 192x192, 512x512) for multi-platform app store requirements
-✓ **Submission Documentation**: Created comprehensive mobile app store submission guides (MOBILE_APP_GUIDE.md, APP_STORE_SUBMISSION.md) with step-by-step PWABuilder instructions
-✓ **App Store Ready**: App is now fully prepared for Microsoft Store, Google Play Store, and iOS App Store submission via PWABuilder conversion
-
-## Previous Changes (August 19, 2025)
-
-✓ **Complete Platform Migration**: Transformed from web React to Expo React Native for cross-platform mobile development
-✓ **Mobile-First Architecture**: Rebuilt all components and screens for React Native with TypeScript
-✓ **Navigation System**: Implemented React Navigation with drawer-based navigation pattern
-✓ **Firebase Integration**: Maintained Firebase Auth and Firestore with mobile-optimized contexts and providers
-✓ **Screen Components**: Created complete screen structure (Dashboard, Tasks, Timeline, Profile, Login)
-✓ **UI Components**: Built comprehensive component library for mobile interface (Header, FAB, Modals, Filters, etc.)
-✓ **Task Management**: Full CRUD operations with real-time sync, priority levels, and status tracking
-✓ **Mobile UX Features**: Touch-optimized interfaces, horizontal scrolling, timeline views, and native date/time pickers
-✓ **Authentication Flow**: Complete sign-in/sign-up flow with Firebase Auth integration
-✓ **TypeScript Integration**: Full type safety across all components and contexts
-✓ **Personalized Welcome System**: Time-based greetings and join-date messages for enhanced user experience
-✓ **Professional Footer**: Added footer with privacy links and developer attribution across all pages
-✓ **Theme Toggle System**: Comprehensive light/dark/system theme management with persistent storage
-✓ **iOS Notification Solutions**: Enhanced notification system with fallbacks and device detection
-✓ **Production Deployment Ready**: Applied deployment fixes for Replit hosting with proper environment handling
-✓ **12-Hour Time Format**: Implemented 12-hour time display (1:00 PM) across all components instead of 24-hour format
-✓ **Enhanced Notification System**: Added calendar integration for reliable mobile notifications on iOS and Android
-✓ **PWA Update Mechanism**: Automatic update detection and user-friendly update prompts for installed PWAs
-✓ **Graceful Background Update Handling**: Advanced update system with background detection, network awareness, and seamless user experience
-✓ **Contact Form Integration**: Fully functional contact form with SendGrid email delivery to contact@romaintomlinson.com
-✓ **Multi-Method Email Delivery**: Robust email system with SendGrid primary and multiple fallback methods ensuring 100% delivery
-✓ **Calendar Integration**: Tasks automatically added to device calendar for enhanced notification reliability
-✓ **Recurring Tasks Feature**: Complete recurring task system with daily/weekly/monthly patterns, custom day selection, and automatic calendar integration
-✓ **Production Ready**: Comprehensive deployment testing completed with build verification, health checks, and feature validation
-✓ **Authentication Enhancement**: Added password reset, change password, and account deletion features with proper security and user confirmation dialogs
-✓ **PWA Cache Fix**: Resolved white screen and update issues with improved service worker cache management, network-first HTML strategy, and manual cache clearing functionality
-✓ **Interactive Tutorial System**: Complete first-time user onboarding with welcome modal, step-by-step overlay guidance, tutorial progress tracking, and reset functionality integrated with Profile page
-✓ **Mobile-Optimized Tutorial**: Enhanced tutorial tour with mobile-friendly positioning, touch-optimized buttons, responsive design, and improved scroll behavior for better mobile experience
-✓ **Deployment Ready**: Comprehensive production build verification completed with anti-white screen measures, graceful update system, health checks, and all PWA cache management systems validated
-✓ **Advanced Mobile Notification Configurator**: Complete multi-tier notification system with device detection, iOS/Android calendar integration, web push fallbacks, vibration support, and automatic .ics calendar file generation for reliable mobile notifications across all devices
-✓ **Anti-Blank Screen System**: Enhanced service worker with timeout handling, multiple fallback strategies, visual loading states, and automatic retry mechanisms to prevent white/blank screens during app updates or network issues
-✓ **Tutorial Mobile Scrolling Overhaul**: Completely rewritten mobile scroll handling with iOS-specific fixes, proper viewport handling, session storage scroll restoration, and enhanced touch behavior for smooth tutorial navigation across all devices
-
-## Migration Status
-
-**✅ COMPLETED FEATURES:**
-- Complete Expo React Native project structure
-- All screens implemented (Dashboard, Tasks, Timeline, Profile, Login)
-- All reusable components created
-- Firebase configuration and contexts
-- Authentication system with Firebase Auth
-- Task management with Firestore real-time sync
-- Navigation with React Navigation drawer
-- TypeScript integration throughout
-- Mobile-optimized UI/UX patterns
-
-**✅ FIREBASE CONFIGURED:**
-- Firebase credentials updated with actual project details (dayfuse-web)
-- Project ID: dayfuse-web
-- Authentication and Firestore ready for use
-
-**🔧 EXPO SETUP REQUIRED:**
-- Create new Expo project and copy all source files
-- Install React Native dependencies via Expo
-- Set Firestore security rules for users/{uid}/tasks access
-- Run `expo start` to launch the completed app
-
-**📋 CURRENT STATUS:**
-- ✅ Complete web application fully functional and running on port 5000
-- ✅ All 5 main pages implemented (Login, Dashboard, Tasks, Timeline, Profile) 
-- ✅ Firebase integration with real-time Firestore sync completed
-- ✅ Push notifications system implemented with scheduling (notify at set time + 1 minute after)
-- ✅ Complete navigation system in header with responsive design
-- ✅ All UI components created with DayFuse branding and color scheme  
-- ✅ React hooks issues resolved - app loading without errors
-- ✅ LSP errors fixed - clean TypeScript compilation
-- ✅ Hot module reloading working perfectly
-- ✅ **DEPLOYMENT READY**: Production build configuration completed with proper environment handling
+-   **Cross-Platform Accessibility**: Available as an installable PWA for web browsers and as native mobile applications for iOS and Android.
+-   **Real-time Task Management**: Full CRUD operations for tasks with real-time synchronization across all platforms via Firebase Firestore.
+-   **Native Push Notifications**: Device-level push notifications with interactive actions for task reminders.
+-   **Authentication**: Secure user authentication and management through Firebase Auth.
+-   **Recurring Tasks**: Support for daily, weekly, and monthly recurring tasks with calendar integration.
+-   **Intuitive UI/UX**: Mobile-first design, touch-optimized interfaces, and personalized user experiences.
 
 # User Preferences
 
@@ -91,115 +19,56 @@ Preferred communication style: Simple, everyday language.
 
 ## Frontend Architecture
 
-The frontend is built using React with TypeScript and follows a component-based architecture:
-
-- **UI Framework**: React with TypeScript for type safety
-- **Styling**: Tailwind CSS with custom design tokens for consistent theming
-- **UI Components**: Radix UI primitives with shadcn/ui component library for accessible, customizable components
-- **Routing**: Wouter for lightweight client-side routing
-- **State Management**: React Context API for authentication and task management state
-- **Data Fetching**: TanStack Query for server state management and caching
-- **Build Tool**: Vite for fast development and optimized production builds
-
-The frontend follows a mobile-first responsive design with PWA capabilities including service worker implementation for offline functionality.
+The frontend is built using React with TypeScript, following a component-based architecture. It leverages Radix UI primitives and shadcn/ui for accessible and customizable components, styled with Tailwind CSS for consistent theming. Wouter is used for lightweight client-side routing, while React Context API manages authentication and task states. TanStack Query handles server state management, and Vite ensures fast development and optimized production builds. The design prioritizes mobile-first responsiveness and includes PWA capabilities with service worker implementation for offline functionality.
 
 ## Backend Architecture
 
-The backend uses Express.js with TypeScript in a modular structure:
-
-- **Framework**: Express.js with middleware for JSON parsing and request logging
-- **Development**: Hot reloading with Vite integration in development mode
-- **Error Handling**: Centralized error handling middleware
-- **Routing**: Modular route registration system with API prefix structure
-- **Storage Interface**: Abstract storage interface allowing for multiple implementations (currently in-memory, designed for database integration)
+The backend uses Express.js with TypeScript, featuring a modular structure with middleware for JSON parsing and error handling. It employs a modular route registration system. An abstract storage interface is designed for database integration, currently using an in-memory solution.
 
 ## Data Storage Solutions
 
-**Primary Database**: PostgreSQL configured through Drizzle ORM
-- **Schema Management**: Drizzle migrations in `/migrations` directory
-- **Database Client**: Neon Database serverless PostgreSQL
-- **ORM**: Drizzle ORM with Zod integration for type-safe database operations
-- **Schema Definition**: Centralized schema in `/shared/schema.ts` with user management tables
-
-**Client-side Storage**: Firebase integration for real-time data and authentication
-- **Authentication**: Firebase Auth for user management
-- **Real-time Database**: Firestore for task data with real-time synchronization
-- **Push Notifications**: Web Push API with Service Worker for task reminders
-- **Development**: Firebase emulators for local development environment
+The primary database is PostgreSQL, configured through Drizzle ORM with schema management via Drizzle migrations and hosted on Neon Database. Drizzle ORM with Zod integration ensures type-safe database operations. Client-side storage and real-time data synchronization are handled by Firebase, utilizing Firebase Auth for user management and Firestore for real-time task data. Web Push API via a Service Worker provides task reminders.
 
 ## Authentication and Authorization
 
-**Authentication Provider**: Firebase Authentication
-- **Methods**: Email/password authentication with user profile management
-- **Session Management**: Firebase handles token refresh and session persistence
-- **User Context**: React Context provides authentication state throughout the application
-- **Protected Routes**: Route-level protection based on authentication status
-
-**Authorization**: Role-based access through Firebase security rules and user context validation
-
-## External Dependencies
-
-**UI and Design**:
-- Radix UI primitives for accessible component foundations
-- Tailwind CSS for utility-first styling
-- Lucide React for consistent iconography
-- Custom fonts: Inter, DM Sans, Architects Daughter, Fira Code, Geist Mono
-
-**Development and Build**:
-- Vite for development server and build optimization
-- TypeScript for type safety across the stack
-- ESBuild for server-side bundling
-- PostCSS with Autoprefixer for CSS processing
-
-**Database and Backend**:
-- Neon Database for serverless PostgreSQL hosting
-- Drizzle ORM for type-safe database operations
-- Express session management with connect-pg-simple
-
-**Utilities and Validation**:
-- Zod for runtime type validation and schema definition
-- Date-fns for date manipulation and formatting
-- Class Variance Authority for component variant management
-- React Hook Form with Hookform Resolvers for form management
-
-**Development Tools**:
-- Replit integration for development environment
-- Firebase emulators for local development
-- Runtime error overlay for development debugging
-- Service Worker for push notifications and PWA caching
-- Web Push API for scheduled task reminders
+Firebase Authentication is the primary provider for user authentication, supporting email/password methods. Firebase handles session management and token refresh. A React Context provides authentication state throughout the application, and routes are protected based on authentication status. Authorization is managed through Firebase security rules and user context validation.
 
 ## Push Notification Features
 
-**Notification System Architecture**:
-- **Service Worker**: `/client/public/sw.js` handles push notifications, caching, and offline functionality
-- **Notification Manager**: `/client/src/lib/notifications.ts` provides singleton notification service
-- **Real-time Scheduling**: Tasks with due times automatically schedule browser-based push notifications
-- **User Controls**: Notification settings component in Profile page with permission management
+The notification system architecture relies on a Service Worker (`/client/public/sw.js`) for handling push notifications, caching, and offline functionality. A singleton notification manager (`/client/src/lib/notifications.ts`) provides notification services. Tasks with due times automatically schedule browser-based push notifications. Key features include task reminder notifications, graceful permission management with user-friendly UI, interactive actions like "Mark Complete" and "Snooze 10min", and cross-session persistence ensuring notifications work even when the app is closed.
 
-**Key Features**:
-- **Task Reminder Notifications**: Push notifications at scheduled task times
-- **Permission Management**: Graceful handling of notification permissions with user-friendly UI
-- **Notification Actions**: "Mark Complete" and "Snooze 10min" actions in notifications
-- **Cross-session Persistence**: Notifications work even when the app is closed
-- **PWA Integration**: Enhanced Progressive Web App with offline capabilities
+# External Dependencies
 
-## Deployment Configuration
+## UI and Design
 
-**Production Deployment Fixes Applied**:
-- ✅ **Environment Detection**: Enhanced server to properly detect and log NODE_ENV (development/production)
-- ✅ **Build Verification**: Confirmed `npm run build` generates complete production assets
-- ✅ **Start Script**: Verified `npm start` properly sets NODE_ENV=production and runs built server
-- ✅ **Error Handling**: Added comprehensive error handling with production-safe error responses
-- ✅ **Health Monitoring**: Added `/api/health` endpoint for deployment health checks
-- ✅ **Static Serving**: Verified production static file serving works correctly
-- ✅ **Port Configuration**: Confirmed server properly uses PORT environment variable with fallback to 5000
-- ✅ **Deployment Logging**: Enhanced logging for better deployment debugging
+-   **Radix UI**: Accessible component foundations.
+-   **Tailwind CSS**: Utility-first styling.
+-   **Lucide React**: Consistent iconography.
+-   **Custom fonts**: Inter, DM Sans, Architects Daughter, Fira Code, Geist Mono.
 
-**Deployment Structure**:
-- **Development**: `npm run dev` → Development server with Vite HMR on port 5000
-- **Production Build**: `npm run build` → Creates optimized assets in `/dist` directory
-- **Production Start**: `npm start` → Serves built application from `/dist/index.js`
-- **Replit Configuration**: `.replit` file properly configured for autoscale deployment
+## Development and Build
 
-**Health Check**: GET `/api/health` returns server status, environment, and port information for monitoring deployment health.
+-   **Vite**: Development server and build optimization.
+-   **TypeScript**: Type safety across the stack.
+-   **ESBuild**: Server-side bundling.
+-   **PostCSS with Autoprefixer**: CSS processing.
+
+## Database and Backend
+
+-   **Neon Database**: Serverless PostgreSQL hosting.
+-   **Drizzle ORM**: Type-safe database operations.
+-   **Express session management**: With connect-pg-simple.
+
+## Utilities and Validation
+
+-   **Zod**: Runtime type validation and schema definition.
+-   **Date-fns**: Date manipulation and formatting.
+-   **Class Variance Authority**: Component variant management.
+-   **React Hook Form with Hookform Resolvers**: Form management.
+
+## Development Tools
+
+-   **Replit**: Development environment integration.
+-   **Firebase emulators**: Local development.
+-   **Service Worker**: Push notifications and PWA caching.
+-   **Web Push API**: Scheduled task reminders.
