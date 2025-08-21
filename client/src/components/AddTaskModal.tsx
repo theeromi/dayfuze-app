@@ -115,14 +115,18 @@ export default function AddTaskModal({ trigger, onSuccess }: AddTaskModalProps) 
         )}
       </DialogTrigger>
       
-      <DialogContent className="sm:max-w-[500px] max-w-[95vw] max-h-[95vh] p-0 flex flex-col">
+      <DialogContent className="sm:max-w-[500px] max-w-[95vw] max-h-[90vh] p-0 flex flex-col overflow-hidden">
         <div className="p-4 sm:p-6 pb-0 flex-shrink-0">
           <DialogHeader>
             <DialogTitle>Add New Task</DialogTitle>
           </DialogHeader>
         </div>
         
-        <ScrollArea className="flex-1 p-4 sm:p-6 pt-4">
+        <ScrollArea className="flex-1 p-4 sm:p-6 pt-4" style={{ 
+          WebkitOverflowScrolling: 'touch',
+          overscrollBehavior: 'contain',
+          maxHeight: 'calc(90vh - 140px)'
+        }}>
           <form onSubmit={handleSubmit} className="space-y-4" id="task-form">
           <div className="space-y-2">
             <Label htmlFor="title">Title *</Label>
@@ -237,14 +241,29 @@ export default function AddTaskModal({ trigger, onSuccess }: AddTaskModalProps) 
             )}
           </div>
 
-          {/* Recurring Task Section */}
-          <div className="space-y-4 p-4 bg-muted/20 rounded-lg border border-muted">
+          {/* Recurring Task Section with enhanced mobile scrolling */}
+          <div className="space-y-4 p-4 bg-muted/20 rounded-lg border border-muted" 
+               style={{ 
+                 WebkitOverflowScrolling: 'touch',
+                 overscrollBehavior: 'contain'
+               }}>
             <div className="flex items-center gap-3">
               <input
                 type="checkbox"
                 id="recurring"
                 checked={formData.recurring}
-                onChange={(e) => setFormData(prev => ({ ...prev, recurring: e.target.checked }))}
+                onChange={(e) => {
+                  setFormData(prev => ({ ...prev, recurring: e.target.checked }));
+                  // Smooth scroll to show expanded content on mobile
+                  if (e.target.checked && window.innerWidth <= 768) {
+                    setTimeout(() => {
+                      const recurringSection = document.getElementById('recurring-options');
+                      if (recurringSection) {
+                        recurringSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                      }
+                    }, 100);
+                  }
+                }}
                 className="w-4 h-4 text-day-blue border-gray-300 rounded focus:ring-day-blue"
                 data-testid="checkbox-recurring"
               />
@@ -255,7 +274,7 @@ export default function AddTaskModal({ trigger, onSuccess }: AddTaskModalProps) 
             </div>
 
             {formData.recurring && (
-              <div className="space-y-4 pl-7">
+              <div className="space-y-4 pl-7" id="recurring-options">
                 <div className="space-y-2">
                   <Label>Repeat Pattern</Label>
                   <Select
@@ -278,7 +297,11 @@ export default function AddTaskModal({ trigger, onSuccess }: AddTaskModalProps) 
                 {formData.recurringPattern === 'weekly' && (
                   <div className="space-y-2">
                     <Label>Select Days</Label>
-                    <div className="grid grid-cols-7 gap-1">
+                    <div className="grid grid-cols-7 gap-1" 
+                         style={{ 
+                           touchAction: 'manipulation',
+                           WebkitTouchCallout: 'none'
+                         }}>
                       {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => {
                         const dayNames = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
                         const isSelected = formData.recurringDays.includes(dayNames[index]);
@@ -296,11 +319,15 @@ export default function AddTaskModal({ trigger, onSuccess }: AddTaskModalProps) 
                               }));
                             }}
                             className={cn(
-                              "p-2 text-xs rounded-md border transition-colors",
+                              "p-2 text-xs rounded-md border transition-colors touch-manipulation",
                               isSelected
                                 ? "bg-day-blue text-white border-day-blue"
-                                : "bg-background border-border hover:bg-muted"
+                                : "bg-background border-border hover:bg-muted active:bg-muted"
                             )}
+                            style={{
+                              WebkitTapHighlightColor: 'transparent',
+                              touchAction: 'manipulation'
+                            }}
                             data-testid={`button-day-${day.toLowerCase()}`}
                           >
                             {day}
