@@ -113,7 +113,7 @@ export default function Dashboard() {
         </div>
 
         {/* Navigation Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           <Card 
             className="cursor-pointer hover:shadow-lg transition-all hover:scale-105"
             onClick={() => navigate('/tasks')}

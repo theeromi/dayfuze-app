@@ -148,7 +148,7 @@ export default function NotificationCenter({ className }: NotificationCenterProp
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="w-80 p-0 max-h-96 overflow-y-auto"
+        className="w-80 sm:w-96 p-0 max-h-[80vh] sm:max-h-96 overflow-y-auto"
         data-testid="notification-center-content"
       >
         <Card className="border-0 shadow-none">
