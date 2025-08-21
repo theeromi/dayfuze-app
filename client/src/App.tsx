@@ -8,7 +8,7 @@ import FirstTimeUserDetector from '@/components/FirstTimeUserDetector';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { TaskProvider } from '@/contexts/TaskContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
-import { ThemeProvider } from '@/contexts/SimpleThemeContext';
+// import { ThemeProvider } from '@/contexts/SimpleThemeContext';
 import { TutorialProvider } from '@/contexts/TutorialContext';
 
 // Pages
@@ -33,11 +33,10 @@ const queryClient = new QueryClient({
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <AuthProvider>
-          <NotificationProvider>
-            <TutorialProvider>
-              <TaskProvider>
+      <AuthProvider>
+        <NotificationProvider>
+          <TutorialProvider>
+            <TaskProvider>
               <div className="min-h-screen bg-background text-foreground">
                 <UpdatePrompt />
                 <TutorialOverlay />
@@ -57,7 +56,6 @@ export default function App() {
             </TutorialProvider>
           </NotificationProvider>
         </AuthProvider>
-      </ThemeProvider>
     </QueryClientProvider>
   );
 }

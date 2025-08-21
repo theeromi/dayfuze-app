@@ -35,9 +35,9 @@ export function Header() {
               <div className="hidden sm:block">
                 <NotificationCenter />
               </div>
-              <div className="hidden sm:block">
+              {/* <div className="hidden sm:block">
                 <ThemeToggle />
-              </div>
+              </div> */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="relative h-8 w-8 rounded-full">
@@ -58,12 +58,12 @@ export function Header() {
                         <span className="ml-2">Notifications</span>
                       </div>
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    {/* <DropdownMenuItem>
                       <div className="flex items-center w-full">
                         <ThemeToggle />
                         <span className="ml-2">Toggle Theme</span>
                       </div>
-                    </DropdownMenuItem>
+                    </DropdownMenuItem> */}
                     <DropdownMenuSeparator />
                   </div>
                   
