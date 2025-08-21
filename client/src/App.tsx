@@ -1,5 +1,4 @@
 
-import React from 'react';
 import { Route, Switch } from 'wouter';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import UpdatePrompt from '@/components/UpdatePrompt';
@@ -8,7 +7,7 @@ import FirstTimeUserDetector from '@/components/FirstTimeUserDetector';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { TaskProvider } from '@/contexts/TaskContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
-// import { ThemeProvider } from '@/contexts/SimpleThemeContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 import { TutorialProvider } from '@/contexts/TutorialContext';
 
 // Pages
@@ -33,10 +32,11 @@ const queryClient = new QueryClient({
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <NotificationProvider>
-          <TutorialProvider>
-            <TaskProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <NotificationProvider>
+            <TutorialProvider>
+              <TaskProvider>
               <div className="min-h-screen bg-background text-foreground">
                 <UpdatePrompt />
                 <TutorialOverlay />
@@ -56,6 +56,7 @@ export default function App() {
             </TutorialProvider>
           </NotificationProvider>
         </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

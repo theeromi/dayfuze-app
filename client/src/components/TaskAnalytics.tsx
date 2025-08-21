@@ -160,31 +160,31 @@ export default function TaskAnalytics({ className }: TaskAnalyticsProps) {
         </div>
 
         {/* Status Breakdown */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        <div className="grid grid-cols-3 gap-3">
           <div className="text-center space-y-1">
             <div className="flex items-center justify-center gap-1">
-              <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 text-green-600 dark:text-green-400" />
+              <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
               <span className="text-xs font-medium">Done</span>
             </div>
-            <div className="text-base sm:text-lg font-semibold text-green-600 dark:text-green-400">
+            <div className="text-lg font-semibold text-green-600 dark:text-green-400">
               {stats.completed}
             </div>
           </div>
           <div className="text-center space-y-1">
             <div className="flex items-center justify-center gap-1">
-              <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-600 dark:text-yellow-400" />
+              <Clock className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
               <span className="text-xs font-medium">Progress</span>
             </div>
-            <div className="text-base sm:text-lg font-semibold text-yellow-600 dark:text-yellow-400">
+            <div className="text-lg font-semibold text-yellow-600 dark:text-yellow-400">
               {stats.inProgress}
             </div>
           </div>
           <div className="text-center space-y-1">
             <div className="flex items-center justify-center gap-1">
-              <Circle className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+              <Circle className="h-4 w-4 text-muted-foreground" />
               <span className="text-xs font-medium">Todo</span>
             </div>
-            <div className="text-base sm:text-lg font-semibold text-muted-foreground">
+            <div className="text-lg font-semibold text-muted-foreground">
               {stats.todo}
             </div>
           </div>

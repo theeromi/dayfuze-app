@@ -53,7 +53,7 @@ export default function TaskQuickActions({
           <MoreHorizontal className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-52 sm:w-56">
+      <DropdownMenuContent align="end" className="w-56">
         {/* Quick Status Changes */}
         <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
           Status
