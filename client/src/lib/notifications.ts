@@ -89,6 +89,15 @@ class NotificationManager {
       // Fallback to regular notification API
       this.showTaskNotification(task.title, task.id, task.description);
     }
+
+    // Try to add to calendar for enhanced notifications
+    try {
+      const calendarEvent: CalendarEvent = {
+        title: task.title,
+        description: task.description || '',
+        startDate: new Date(),
+        endDate: new Date(Date.now() + 60 * 60 * 1000) // 1 hour duration
+      };
       
       await addToCalendar(calendarEvent);
       console.log('Task added to calendar for enhanced notifications');
