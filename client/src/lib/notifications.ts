@@ -58,21 +58,37 @@ class NotificationManager {
     // Cancel any existing notification for this task
     this.cancelNotification(task.id);
 
-    // Schedule notification
+    // Schedule native push notification (works on Android APK)
     const timeoutId = window.setTimeout(() => {
-      this.showTaskNotification(task.title, task.id, task.description);
+      this.showNativePushNotification(task);
     }, delay);
 
     this.scheduledNotifications.set(task.id, timeoutId);
 
-    // Also try to add to calendar for better notification reliability
-    try {
-      const calendarEvent: CalendarEvent = {
-        title: `DayFuse: ${task.title}`,
-        description: task.description || 'Task reminder from DayFuse',
-        startDate: task.dueTime,
-        endDate: new Date(task.dueTime.getTime() + 30 * 60 * 1000) // 30 minutes duration
-      };
+    console.log(`Scheduled notification for task "${task.title}" in ${Math.round(delay / 1000 / 60)} minutes`);
+  }
+
+  private async showNativePushNotification(task: { id: string; title: string; description?: string }): Promise<void> {
+    // Use service worker for native Android notifications
+    if ('serviceWorker' in navigator) {
+      const registration = await navigator.serviceWorker.ready;
+      
+      // Send push event to service worker
+      if (registration.active) {
+        registration.active.postMessage({
+          type: 'SHOW_NOTIFICATION',
+          payload: {
+            title: `📋 ${task.title}`,
+            body: task.description || 'Task is due now',
+            taskId: task.id,
+            url: `/dashboard?task=${task.id}`
+          }
+        });
+      }
+    } else {
+      // Fallback to regular notification API
+      this.showTaskNotification(task.title, task.id, task.description);
+    }
       
       await addToCalendar(calendarEvent);
       console.log('Task added to calendar for enhanced notifications');

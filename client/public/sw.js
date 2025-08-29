@@ -220,36 +220,56 @@ self.addEventListener('fetch', event => {
   );
 });
 
-// Handle push notifications
+// Enhanced push notification handler for Android APK-style notifications
 self.addEventListener('push', event => {
+  let data = {};
+  let title = 'DayFuse Reminder';
+  let body = 'You have a task reminder';
+  
+  if (event.data) {
+    try {
+      data = event.data.json();
+      title = data.title || title;
+      body = data.body || body;
+    } catch (e) {
+      body = event.data.text() || body;
+    }
+  }
+
   const options = {
-    body: event.data ? event.data.text() : 'Task reminder from DayFuse',
-    icon: '/icon-192x192.png',
-    badge: '/icon-72x72.png',
-    vibrate: [100, 50, 100],
+    body: body,
+    icon: '/dayfuse-logo-192.png',
+    badge: '/dayfuse-logo-192.png',
+    vibrate: [200, 100, 200, 100, 200],
     data: {
+      taskId: data.taskId || 'unknown',
       dateOfArrival: Date.now(),
-      primaryKey: 1
+      url: data.url || '/dashboard'
     },
     actions: [
       {
         action: 'complete',
-        title: 'Mark Complete',
-        icon: '/icons/checkmark.png'
+        title: '✓ Mark Complete',
+        icon: '/dayfuse-logo-192.png'
       },
       {
         action: 'snooze',
-        title: 'Snooze 10min',
-        icon: '/icons/snooze.png'
+        title: '⏰ Snooze 10min',
+        icon: '/dayfuse-logo-192.png'
+      },
+      {
+        action: 'view',
+        title: '👁 View Task',
+        icon: '/dayfuse-logo-192.png'
       }
-    ]
+    ],
+    requireInteraction: true, // Android will keep notification until user acts
+    silent: false,
+    renotify: true,
+    tag: data.taskId || 'dayfuse-reminder'
   };
 
-  const promiseChain = self.registration.showNotification(
-    'DayFuse Reminder',
-    options
-  );
-
+  const promiseChain = self.registration.showNotification(title, options);
   event.waitUntil(promiseChain);
 });
 
@@ -301,5 +321,45 @@ self.addEventListener('message', event => {
       hasUpdate: updateWaiting,
       cacheVersion: CACHE_NAME
     });
+  }
+  
+  // Handle native push notification requests
+  if (event.data && event.data.type === 'SHOW_NOTIFICATION') {
+    const { title, body, taskId, url } = event.data.payload;
+    
+    const options = {
+      body: body,
+      icon: '/dayfuse-logo-192.png',
+      badge: '/dayfuse-logo-192.png', 
+      vibrate: [200, 100, 200, 100, 200],
+      data: {
+        taskId: taskId,
+        url: url,
+        dateOfArrival: Date.now()
+      },
+      actions: [
+        {
+          action: 'complete',
+          title: '✓ Complete',
+          icon: '/dayfuse-logo-192.png'
+        },
+        {
+          action: 'snooze', 
+          title: '⏰ Snooze 10min',
+          icon: '/dayfuse-logo-192.png'
+        },
+        {
+          action: 'view',
+          title: '👁 View',
+          icon: '/dayfuse-logo-192.png'
+        }
+      ],
+      requireInteraction: true,
+      silent: false,
+      renotify: true,
+      tag: `task-${taskId}`
+    };
+    
+    self.registration.showNotification(title, options);
   }
 });
