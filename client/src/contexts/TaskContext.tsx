@@ -127,20 +127,11 @@ export function TaskProvider({ children }: TaskProviderProps) {
       // Use the enhanced notification manager
       const { notificationManager } = await import('@/lib/notifications');
       
-      // Schedule notification for the due time
+      // Schedule notification for the due time only (removed duplicate scheduling)
       await notificationManager.scheduleTaskReminder({
         id: docRef.id,
         title: taskInput.title,
         dueTime: taskDateTime,
-        description: taskInput.description
-      });
-
-      // Also schedule a notification 1 minute after
-      const oneMinuteAfter = new Date(taskDateTime.getTime() + 60000);
-      await notificationManager.scheduleTaskReminder({
-        id: `${docRef.id}_reminder`,
-        title: `Follow-up: ${taskInput.title}`,
-        dueTime: oneMinuteAfter,
         description: taskInput.description
       });
     }

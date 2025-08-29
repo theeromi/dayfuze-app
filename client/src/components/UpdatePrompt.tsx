@@ -39,8 +39,17 @@ export default function UpdatePrompt() {
     };
   }, []);
 
-  const handleUpdate = () => {
-    updateManager.applyUpdate();
+  const handleUpdate = async () => {
+    try {
+      await updateManager.applyUpdate();
+    } catch (error) {
+      console.error('Update failed:', error);
+      setUpdateState(prev => ({ 
+        ...prev, 
+        error: 'Update failed. Please try again or refresh the page manually.',
+        installing: false 
+      }));
+    }
   };
 
   const handleDismiss = () => {

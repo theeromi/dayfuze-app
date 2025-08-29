@@ -306,7 +306,7 @@ export default function Timeline() {
                                 {task.dueTime && (
                                   <span className="text-xs text-muted-foreground flex items-center gap-1">
                                     <Clock className="h-3 w-3" />
-                                    {task.dueTime}
+                                    {formatTime12Hour(task.dueTime)}
                                   </span>
                                 )}
                               </div>

@@ -26,6 +26,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { format } from 'date-fns';
+import { formatTime12Hour } from '@/lib/timeUtils';
 
 export default function Tasks() {
   const { currentUser, loading: authLoading } = useAuth();
@@ -261,7 +262,7 @@ export default function Tasks() {
                     {task.dueTime && (
                       <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        {task.dueTime}
+                        {formatTime12Hour(task.dueTime)}
                       </div>
                     )}
                   </div>

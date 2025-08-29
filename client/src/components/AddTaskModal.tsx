@@ -239,7 +239,7 @@ export default function AddTaskModal({ trigger, onSuccess }: AddTaskModalProps) 
             />
             {formData.dueTime && (
               <p className="text-sm text-muted-foreground">
-                ⏰ You'll get notified at {formatTime12Hour(formData.dueTime)} and 1 minute after
+                ⏰ You'll get notified at {formatTime12Hour(formData.dueTime)}
               </p>
             )}
           </div>
