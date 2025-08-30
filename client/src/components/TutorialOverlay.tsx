@@ -258,15 +258,15 @@ export default function TutorialOverlay() {
       className="fixed inset-0 z-50 pointer-events-auto overflow-hidden"
       style={{ 
         zIndex: 9999,
-        touchAction: 'none', // Prevent touch scrolling conflicts
+        touchAction: 'auto', // Allow touch interactions for tutorial content
         WebkitOverflowScrolling: 'touch' // iOS smooth scrolling
       }}
     >
       {/* Semi-transparent backdrop with mobile-safe touch handling */}
       <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm" 
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-none" 
         style={{ 
-          touchAction: 'manipulation',
+          touchAction: 'none',
           WebkitTouchCallout: 'none',
           WebkitUserSelect: 'none',
           userSelect: 'none'
@@ -300,7 +300,7 @@ export default function TutorialOverlay() {
           transform: getTooltipTransform(),
           maxWidth: isMobile ? 'calc(100vw - 32px)' : '320px',
           minWidth: isMobile ? 'calc(100vw - 32px)' : '280px',
-          maxHeight: isMobile ? 'calc(100vh - 40px)' : 'auto',
+          maxHeight: isMobile ? 'calc(100vh - 80px)' : 'auto',
           zIndex: 10000,
           // Mobile-specific optimizations
           touchAction: 'manipulation',
@@ -325,17 +325,23 @@ export default function TutorialOverlay() {
           </div>
         </CardHeader>
 
-        <CardContent className={`space-y-4 ${isMobile ? 'max-h-48 overflow-y-auto overflow-x-hidden' : ''}`} 
-                     style={isMobile ? { 
-                       WebkitOverflowScrolling: 'touch',
-                       overscrollBehavior: 'contain'
-                     } : {}}>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            {currentStep.content}
-          </p>
+        <CardContent 
+          className={`space-y-4 ${isMobile ? 'max-h-64 overflow-y-auto overflow-x-hidden' : ''}`} 
+          style={isMobile ? { 
+            WebkitOverflowScrolling: 'touch',
+            overscrollBehavior: 'contain',
+            touchAction: 'pan-y', // Allow vertical scrolling
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#cbd5e0 transparent'
+          } : {}}>
+          <div className="pr-2"> {/* Add padding for scrollbar */}
+            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+              {currentStep.content}
+            </p>
+          </div>
 
           {/* Progress indicator */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 pr-2">
             <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
               <div
                 className="bg-blue-500 h-2 rounded-full transition-all duration-300"
@@ -350,7 +356,7 @@ export default function TutorialOverlay() {
           </div>
 
           {/* Navigation buttons */}
-          <div className={`flex gap-2 justify-between ${isMobile ? 'flex-col' : ''}`}>
+          <div className={`flex gap-2 justify-between pr-2 ${isMobile ? 'flex-col' : ''}`}>
             <div className={`flex gap-2 ${isMobile ? 'order-2' : ''}`}>
               {!isFirstStep && (
                 <Button
