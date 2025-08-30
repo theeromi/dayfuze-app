@@ -1,4 +1,4 @@
-import { Moon, Sun, Monitor } from 'lucide-react';
+import { Moon, Sun, Monitor, Eye, BookOpen, Zap, Waves, TreePine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -20,15 +20,17 @@ export function ThemeToggle() {
           className="h-9 w-9 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-border/40"
           data-testid="button-theme-toggle"
         >
-          {actualTheme === 'light' ? (
-            <Sun className="h-4 w-4" />
-          ) : (
-            <Moon className="h-4 w-4" />
-          )}
+          {actualTheme === 'light' && <Sun className="h-4 w-4" />}
+          {actualTheme === 'dark' && <Moon className="h-4 w-4" />}
+          {actualTheme === 'high-contrast' && <Eye className="h-4 w-4" />}
+          {actualTheme === 'sepia' && <BookOpen className="h-4 w-4" />}
+          {actualTheme === 'midnight' && <Zap className="h-4 w-4" />}
+          {actualTheme === 'ocean' && <Waves className="h-4 w-4" />}
+          {actualTheme === 'forest' && <TreePine className="h-4 w-4" />}
           <span className="sr-only">Toggle theme</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-36">
+      <DropdownMenuContent align="end" className="min-w-44">
         <DropdownMenuItem 
           onClick={() => setTheme('light')}
           className={theme === 'light' ? 'bg-accent' : ''}
@@ -52,6 +54,47 @@ export function ThemeToggle() {
         >
           <Monitor className="mr-2 h-4 w-4" />
           <span>System</span>
+        </DropdownMenuItem>
+        <div className="my-1 h-px bg-border" />
+        <DropdownMenuItem 
+          onClick={() => setTheme('high-contrast')}
+          className={theme === 'high-contrast' ? 'bg-accent' : ''}
+          data-testid="theme-high-contrast"
+        >
+          <Eye className="mr-2 h-4 w-4" />
+          <span>High Contrast</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem 
+          onClick={() => setTheme('sepia')}
+          className={theme === 'sepia' ? 'bg-accent' : ''}
+          data-testid="theme-sepia"
+        >
+          <BookOpen className="mr-2 h-4 w-4" />
+          <span>Sepia</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem 
+          onClick={() => setTheme('midnight')}
+          className={theme === 'midnight' ? 'bg-accent' : ''}
+          data-testid="theme-midnight"
+        >
+          <Zap className="mr-2 h-4 w-4" />
+          <span>Midnight</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem 
+          onClick={() => setTheme('ocean')}
+          className={theme === 'ocean' ? 'bg-accent' : ''}
+          data-testid="theme-ocean"
+        >
+          <Waves className="mr-2 h-4 w-4" />
+          <span>Ocean Blue</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem 
+          onClick={() => setTheme('forest')}
+          className={theme === 'forest' ? 'bg-accent' : ''}
+          data-testid="theme-forest"
+        >
+          <TreePine className="mr-2 h-4 w-4" />
+          <span>Forest Green</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
