@@ -1,4 +1,5 @@
 import { addToCalendar, CalendarEvent } from './calendarUtils';
+import { offlineNotificationDB, type OfflineNotification } from './offlineNotifications';
 
 // Notification Manager - Singleton for handling push notifications
 class NotificationManager {
@@ -58,14 +59,43 @@ class NotificationManager {
     // Cancel any existing notification for this task
     this.cancelNotification(task.id);
 
-    // Schedule native push notification (works on Android APK)
+    // Store notification offline for persistent scheduling
+    const offlineNotification: OfflineNotification = {
+      id: `notification_${task.id}_${Date.now()}`,
+      taskId: task.id,
+      title: `📋 ${task.title}`,
+      body: task.description || 'Task is due now',
+      dueTime: task.dueTime.getTime(),
+      scheduled: false,
+      completed: false,
+      createdAt: Date.now()
+    };
+
+    try {
+      await offlineNotificationDB.storeNotification(offlineNotification);
+      
+      // Also send to service worker for immediate scheduling
+      if ('serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.ready;
+        if (registration.active) {
+          registration.active.postMessage({
+            type: 'STORE_NOTIFICATION',
+            notification: offlineNotification
+          });
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to store offline notification, using fallback:', error);
+    }
+
+    // Fallback: Schedule native push notification (in-memory)
     const timeoutId = window.setTimeout(() => {
       this.showNativePushNotification(task);
     }, delay);
 
     this.scheduledNotifications.set(task.id, timeoutId);
 
-    console.log(`Scheduled notification for task "${task.title}" in ${Math.round(delay / 1000 / 60)} minutes`);
+    console.log(`Scheduled notification for task "${task.title}" in ${Math.round(delay / 1000 / 60)} minutes (both offline and in-memory)`);
   }
 
   private async showNativePushNotification(task: { id: string; title: string; description?: string }): Promise<void> {
@@ -184,6 +214,18 @@ class NotificationManager {
     }
 
     try {
+      // Use service worker for better Android compatibility
+      if ('serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.ready;
+        if (registration.active) {
+          registration.active.postMessage({
+            type: 'SHOW_TEST_NOTIFICATION'
+          });
+          return;
+        }
+      }
+      
+      // Fallback to direct notification API
       new Notification('DayFuse Test Notification', {
         body: 'Notifications are working correctly!',
         icon: '/icon-192x192.svg',
@@ -194,12 +236,20 @@ class NotificationManager {
     }
   }
 
-  cancelNotification(taskId: string): void {
+  async cancelNotification(taskId: string): Promise<void> {
     const timeoutId = this.scheduledNotifications.get(taskId);
     if (timeoutId) {
       clearTimeout(timeoutId);
       this.scheduledNotifications.delete(taskId);
       console.log(`Cancelled notification for task: ${taskId}`);
+    }
+
+    // Also cancel from offline storage
+    try {
+      await offlineNotificationDB.deleteByTaskId(taskId);
+      console.log(`Cancelled offline notifications for task: ${taskId}`);
+    } catch (error) {
+      console.warn('Failed to cancel offline notification:', error);
     }
   }
 

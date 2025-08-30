@@ -1,6 +1,12 @@
 // Enhanced Service Worker for push notifications and anti-blank screen caching
-const CACHE_NAME = 'dayfuse-v6-stable';
+const CACHE_NAME = 'dayfuse-v7-offline-notifications';
 const FALLBACK_HTML_URL = '/index.html';
+
+// IndexedDB for offline notifications
+let db = null;
+const DB_NAME = 'DayFuseNotifications';
+const DB_VERSION = 1;
+const STORE_NAME = 'notifications';
 
 // Critical resources that prevent blank screens
 const urlsToCache = [
@@ -20,16 +26,118 @@ const HTML_CACHE = 'dayfuse-html-v6';
 let updateWaiting = false;
 let updateClients = [];
 
+// Initialize IndexedDB for offline notifications
+async function initDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      db = request.result;
+      resolve(db);
+    };
+    
+    request.onupgradeneeded = (event) => {
+      const database = event.target.result;
+      if (!database.objectStoreNames.contains(STORE_NAME)) {
+        const store = database.createObjectStore(STORE_NAME, { keyPath: 'id' });
+        store.createIndex('taskId', 'taskId', { unique: false });
+        store.createIndex('dueTime', 'dueTime', { unique: false });
+        store.createIndex('scheduled', 'scheduled', { unique: false });
+      }
+    };
+  });
+}
+
+// Check and schedule pending notifications from IndexedDB
+async function schedulePendingNotifications() {
+  if (!db) await initDB();
+  
+  try {
+    const transaction = db.transaction([STORE_NAME], 'readonly');
+    const store = transaction.objectStore(STORE_NAME);
+    const index = store.index('scheduled');
+    const request = index.getAll(IDBKeyRange.only(false)); // Get unscheduled notifications
+    
+    request.onsuccess = () => {
+      const notifications = request.result.filter(n => 
+        !n.completed && n.dueTime > Date.now()
+      );
+      
+      notifications.forEach(async (notification) => {
+        const delay = notification.dueTime - Date.now();
+        if (delay > 0) {
+          setTimeout(() => {
+            showStoredNotification(notification);
+          }, delay);
+          
+          // Mark as scheduled
+          const updateTransaction = db.transaction([STORE_NAME], 'readwrite');
+          const updateStore = updateTransaction.objectStore(STORE_NAME);
+          notification.scheduled = true;
+          updateStore.put(notification);
+        }
+      });
+    };
+  } catch (error) {
+    console.error('Error scheduling pending notifications:', error);
+  }
+}
+
+// Show notification from stored data
+function showStoredNotification(notification) {
+  const options = {
+    body: notification.body || 'Task reminder',
+    icon: '/icon-192x192.svg',
+    badge: '/icon-72x72.svg',
+    vibrate: [200, 100, 200, 100, 200],
+    data: {
+      taskId: notification.taskId,
+      url: `/tasks?task=${notification.taskId}`,
+      dateOfArrival: Date.now()
+    },
+    actions: [
+      {
+        action: 'complete',
+        title: '✓ Complete',
+        icon: '/icon-72x72.svg'
+      },
+      {
+        action: 'snooze',
+        title: '⏰ Snooze 10min',
+        icon: '/icon-72x72.svg'
+      },
+      {
+        action: 'view',
+        title: '👁 View',
+        icon: '/icon-72x72.svg'
+      }
+    ],
+    requireInteraction: true,
+    silent: false,
+    renotify: true,
+    tag: `task-${notification.taskId}`
+  };
+  
+  self.registration.showNotification(notification.title, options);
+}
+
 // Install service worker and cache resources
 self.addEventListener('install', event => {
   console.log('Service Worker: Installing new version');
   
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Service Worker: Caching app shell');
-        return cache.addAll(urlsToCache);
+    Promise.all([
+      caches.open(CACHE_NAME)
+        .then(cache => {
+          console.log('Service Worker: Caching app shell');
+          return cache.addAll(urlsToCache);
+        }),
+      initDB().then(() => {
+        console.log('Service Worker: IndexedDB initialized');
+        return schedulePendingNotifications();
       })
+    ])
       .then(() => {
         console.log('Service Worker: Installation complete');
         updateWaiting = true;
@@ -37,8 +145,8 @@ self.addEventListener('install', event => {
         self.skipWaiting();
       })
       .catch(err => {
-        console.error('Service Worker: Cache install failed:', err);
-        // Don't block installation on cache failures
+        console.error('Service Worker: Installation failed:', err);
+        // Don't block installation on failures
       })
   );
 });
@@ -59,6 +167,11 @@ self.addEventListener('activate', event => {
             }
           })
         );
+      }),
+      // Initialize database and schedule pending notifications
+      initDB().then(() => {
+        console.log('Service Worker: Database initialized on activation');
+        return schedulePendingNotifications();
       }),
       // Claim all clients
       self.clients.claim()
@@ -278,19 +391,59 @@ self.addEventListener('notificationclick', event => {
   event.notification.close();
 
   if (event.action === 'complete') {
-    // Handle task completion
-    event.waitUntil(
-      clients.openWindow('/dashboard?action=complete&task=' + event.notification.data.taskId)
-    );
+    // Mark task as completed in offline storage
+    event.waitUntil((async () => {
+      if (!db) await initDB();
+      
+      const transaction = db.transaction([STORE_NAME], 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+      const index = store.index('taskId');
+      const request = index.openCursor(IDBKeyRange.only(event.notification.data.taskId));
+      
+      request.onsuccess = (e) => {
+        const cursor = e.target.result;
+        if (cursor) {
+          const notification = cursor.value;
+          notification.completed = true;
+          cursor.update(notification);
+          cursor.continue();
+        }
+      };
+      
+      // Open app with completion action
+      return self.clients.openWindow('/dashboard?action=complete&task=' + event.notification.data.taskId);
+    })());
   } else if (event.action === 'snooze') {
-    // Handle snooze
-    event.waitUntil(
-      clients.openWindow('/dashboard?action=snooze&task=' + event.notification.data.taskId)
-    );
+    // Handle snooze by creating new notification 10 minutes later
+    event.waitUntil((async () => {
+      if (!db) await initDB();
+      
+      const newNotification = {
+        id: `snooze_${event.notification.data.taskId}_${Date.now()}`,
+        taskId: event.notification.data.taskId,
+        title: event.notification.title,
+        body: event.notification.body + ' (Snoozed)',
+        dueTime: Date.now() + (10 * 60 * 1000), // 10 minutes from now
+        scheduled: false,
+        completed: false,
+        createdAt: Date.now()
+      };
+      
+      const transaction = db.transaction([STORE_NAME], 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+      store.put(newNotification);
+      
+      // Schedule the snoozed notification
+      setTimeout(() => {
+        showStoredNotification(newNotification);
+      }, 10 * 60 * 1000);
+      
+      return self.clients.openWindow('/dashboard?action=snooze&task=' + event.notification.data.taskId);
+    })());
   } else {
     // Default action - open app
     event.waitUntil(
-      clients.openWindow('/dashboard')
+      self.clients.openWindow('/dashboard')
     );
   }
 });
@@ -329,8 +482,8 @@ self.addEventListener('message', event => {
     
     const options = {
       body: body,
-      icon: '/dayfuse-logo-192.png',
-      badge: '/dayfuse-logo-192.png', 
+      icon: '/icon-192x192.svg',
+      badge: '/icon-72x72.svg', 
       vibrate: [200, 100, 200, 100, 200],
       data: {
         taskId: taskId,
@@ -341,17 +494,17 @@ self.addEventListener('message', event => {
         {
           action: 'complete',
           title: '✓ Complete',
-          icon: '/dayfuse-logo-192.png'
+          icon: '/icon-72x72.svg'
         },
         {
           action: 'snooze', 
           title: '⏰ Snooze 10min',
-          icon: '/dayfuse-logo-192.png'
+          icon: '/icon-72x72.svg'
         },
         {
           action: 'view',
           title: '👁 View',
-          icon: '/dayfuse-logo-192.png'
+          icon: '/icon-72x72.svg'
         }
       ],
       requireInteraction: true,
@@ -361,5 +514,54 @@ self.addEventListener('message', event => {
     };
     
     self.registration.showNotification(title, options);
+  }
+  
+  // Handle test notification requests from Android devices
+  if (event.data && event.data.type === 'SHOW_TEST_NOTIFICATION') {
+    const options = {
+      body: 'Notifications are working correctly! This test was sent via service worker for better Android compatibility.',
+      icon: '/icon-192x192.svg',
+      badge: '/icon-72x72.svg',
+      vibrate: [200, 100, 200],
+      data: {
+        testNotification: true,
+        dateOfArrival: Date.now()
+      },
+      requireInteraction: false,
+      silent: false,
+      tag: 'test-notification'
+    };
+    
+    self.registration.showNotification('DayFuse Test Notification', options);
+  }
+  
+  // Handle offline notification storage
+  if (event.data && event.data.type === 'STORE_NOTIFICATION') {
+    event.waitUntil((async () => {
+      if (!db) await initDB();
+      
+      const { notification } = event.data;
+      const transaction = db.transaction([STORE_NAME], 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+      
+      try {
+        store.put(notification);
+        console.log('Notification stored for offline scheduling:', notification.id);
+        
+        // Schedule if due time is in the future
+        const delay = notification.dueTime - Date.now();
+        if (delay > 0) {
+          setTimeout(() => {
+            showStoredNotification(notification);
+          }, delay);
+          
+          // Mark as scheduled
+          notification.scheduled = true;
+          store.put(notification);
+        }
+      } catch (error) {
+        console.error('Error storing notification:', error);
+      }
+    })());
   }
 });
