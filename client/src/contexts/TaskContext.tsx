@@ -142,53 +142,35 @@ export function TaskProvider({ children }: TaskProviderProps) {
 
     const { recurring, recurringPattern, recurringDays, recurringEndDate, ...baseTask } = recurringInput;
     
-    // Generate recurring task instances for the next 3 months or until end date
-    const endDate = recurringEndDate || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000); // 3 months default
-    const startDate = baseTask.dueDate.toDate();
-    
-    const instances = generateRecurringInstances(startDate, endDate, recurringPattern, recurringDays);
-    
-    // Create each recurring task instance
-    for (const instanceDate of instances) {
-      const taskInput: TaskInput = {
-        ...baseTask,
-        title: `${baseTask.title} (${recurringPattern})`,
-        dueDate: Timestamp.fromDate(instanceDate),
-      };
+    // Create a SINGLE recurring task instead of multiple instances
+    const tasksRef = collection(db, 'users', currentUser.uid, 'tasks');
+    const taskDoc = await addDoc(tasksRef, {
+      ...baseTask,
+      title: `${baseTask.title} (${recurringPattern})`,
+      completed: false,
+      isRecurring: true,
+      recurringPattern,
+      recurringDays,
+      recurringEndDate: recurringEndDate ? Timestamp.fromDate(recurringEndDate) : null,
+      lastCompletedDate: null,
+      nextDueDate: baseTask.dueDate, // Track the next occurrence
+      createdAt: serverTimestamp(),
+    });
+
+    // Schedule notification only for the FIRST occurrence
+    if (baseTask.dueTime) {
+      const taskDateTime = new Date(baseTask.dueDate.toDate());
+      const [hours, minutes] = baseTask.dueTime.split(':').map(Number);
+      taskDateTime.setHours(hours, minutes, 0, 0);
+
+      const { notificationManager } = await import('@/lib/notifications');
       
-      const tasksRef = collection(db, 'users', currentUser.uid, 'tasks');
-      const taskDoc = await addDoc(tasksRef, {
-        ...taskInput,
-        completed: false,
-        isRecurring: true,
-        recurringPattern,
-        createdAt: serverTimestamp(),
+      await notificationManager.scheduleTaskReminder({
+        id: taskDoc.id,
+        title: baseTask.title,
+        dueTime: taskDateTime,
+        description: baseTask.description
       });
-
-      // Schedule notification if time is set
-      if (taskInput.dueTime) {
-        const taskDateTime = new Date(instanceDate);
-        const [hours, minutes] = taskInput.dueTime.split(':').map(Number);
-        taskDateTime.setHours(hours, minutes, 0, 0);
-
-        const { notificationManager } = await import('@/lib/notifications');
-        
-        await notificationManager.scheduleTaskReminder({
-          id: taskDoc.id,
-          title: taskInput.title,
-          dueTime: taskDateTime,
-          description: taskInput.description
-        });
-
-        // Also schedule a notification 1 minute after
-        const oneMinuteAfter = new Date(taskDateTime.getTime() + 60000);
-        await notificationManager.scheduleTaskReminder({
-          id: `${taskDoc.id}_reminder`,
-          title: `Follow-up: ${taskInput.title}`,
-          dueTime: oneMinuteAfter,
-          description: taskInput.description
-        });
-      }
     }
   };
 
@@ -292,16 +274,110 @@ export function TaskProvider({ children }: TaskProviderProps) {
     const newCompleted = !task.completed;
     const newStatus = newCompleted ? 'done' : 'todo';
     
-    await updateDoc(taskRef, { 
-      completed: newCompleted,
-      status: newStatus
-    });
+    // Handle recurring tasks differently when completed
+    if (newCompleted && task.isRecurring) {
+      const nextOccurrence = calculateNextOccurrence(
+        task.nextDueDate ? task.nextDueDate.toDate() : task.dueDate.toDate(),
+        task.recurringPattern,
+        task.recurringDays
+      );
+      
+      // Check if we've reached the end date
+      const shouldContinue = !task.recurringEndDate || nextOccurrence <= task.recurringEndDate.toDate();
+      
+      if (shouldContinue) {
+        // Update task with next occurrence instead of marking completed
+        await updateDoc(taskRef, {
+          lastCompletedDate: serverTimestamp(),
+          nextDueDate: Timestamp.fromDate(nextOccurrence),
+          dueDate: Timestamp.fromDate(nextOccurrence),
+          completed: false, // Keep task active with new due date
+          status: 'todo'
+        });
+        
+        // Cancel current notifications and schedule for next occurrence
+        cancelNotification(taskId);
+        cancelNotification(`${taskId}_reminder`);
+        
+        if (task.dueTime) {
+          const taskDateTime = new Date(nextOccurrence);
+          const [hours, minutes] = task.dueTime.split(':').map(Number);
+          taskDateTime.setHours(hours, minutes, 0, 0);
 
-    // Cancel notifications if task is completed
-    if (newCompleted) {
-      cancelNotification(taskId);
-      cancelNotification(`${taskId}_reminder`);
+          const { notificationManager } = await import('@/lib/notifications');
+          
+          await notificationManager.scheduleTaskReminder({
+            id: taskId,
+            title: task.title,
+            dueTime: taskDateTime,
+            description: task.description
+          });
+        }
+      } else {
+        // End of recurrence period, mark as completed
+        await updateDoc(taskRef, {
+          completed: true,
+          status: 'done',
+          lastCompletedDate: serverTimestamp()
+        });
+        
+        // Cancel notifications
+        cancelNotification(taskId);
+        cancelNotification(`${taskId}_reminder`);
+      }
+    } else {
+      // Regular task or uncompleting a recurring task
+      await updateDoc(taskRef, { 
+        completed: newCompleted,
+        status: newStatus
+      });
+
+      // Cancel notifications if task is completed
+      if (newCompleted) {
+        cancelNotification(taskId);
+        cancelNotification(`${taskId}_reminder`);
+      }
     }
+  };
+
+  const calculateNextOccurrence = (
+    currentDate: Date,
+    pattern: 'daily' | 'weekly' | 'monthly',
+    selectedDays?: string[]
+  ): Date => {
+    const nextDate = new Date(currentDate);
+    
+    switch (pattern) {
+      case 'daily':
+        nextDate.setDate(nextDate.getDate() + 1);
+        break;
+      case 'weekly':
+        if (selectedDays && selectedDays.length > 0) {
+          // Find next selected day
+          const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+          const currentDayIndex = nextDate.getDay();
+          let daysToAdd = 1;
+          
+          // Look for next selected day within the next 7 days
+          for (let i = 1; i <= 7; i++) {
+            const testDayIndex = (currentDayIndex + i) % 7;
+            const testDayName = dayNames[testDayIndex];
+            if (selectedDays.includes(testDayName)) {
+              daysToAdd = i;
+              break;
+            }
+          }
+          nextDate.setDate(nextDate.getDate() + daysToAdd);
+        } else {
+          nextDate.setDate(nextDate.getDate() + 7);
+        }
+        break;
+      case 'monthly':
+        nextDate.setMonth(nextDate.getMonth() + 1);
+        break;
+    }
+    
+    return nextDate;
   };
 
   const setTaskPriority = async (taskId: string, priority: 'low' | 'medium' | 'high') => {
