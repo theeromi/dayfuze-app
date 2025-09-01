@@ -53,10 +53,10 @@ export function NotificationSettings() {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-lg font-semibold text-gray-900 mb-4">
+    <div className="bg-background rounded-lg border border-border p-6">
+      <h4 className="font-medium mb-3">
         Notification Settings
-      </h2>
+      </h4>
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -68,7 +68,7 @@ export function NotificationSettings() {
             )}
             <div>
               <p className="font-medium">Push Notifications</p>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 Get reminders for your tasks
               </p>
             </div>
@@ -90,11 +90,11 @@ export function NotificationSettings() {
         )}
 
         {permission === 'denied' && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
-            <p className="text-sm text-yellow-800">
+          <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-md p-4">
+            <p className="text-sm text-yellow-800 dark:text-yellow-200">
               Notifications are blocked. To enable them:
             </p>
-            <ol className="text-sm text-yellow-800 mt-2 ml-4 list-decimal">
+            <ol className="text-sm text-yellow-800 dark:text-yellow-200 mt-2 ml-4 list-decimal">
               <li>Click the lock icon in your browser's address bar</li>
               <li>Change notifications from "Block" to "Allow"</li>
               <li>Refresh this page</li>
@@ -121,7 +121,7 @@ export function NotificationSettings() {
           </div>
         )}
 
-        <div className="text-sm text-gray-500 pt-4 border-t">
+        <div className="text-sm text-muted-foreground pt-4 border-t border-border">
           <p className="font-medium mb-2">How task reminders work:</p>
           <ul className="space-y-1 ml-4 list-disc">
             <li>Set a due date and time when creating or editing a task</li>

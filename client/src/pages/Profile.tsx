@@ -14,6 +14,7 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { NotificationSettings } from '../components/NotificationSettings';
 import Footer from '../components/ui/Footer';
 
 export default function Profile() {
@@ -305,110 +306,10 @@ export default function Profile() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-medium mb-3">Notification Settings</h4>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          {notificationsEnabled ? (
-                            <Bell className="h-4 w-4 text-accent-green" />
-                          ) : (
-                            <BellOff className="h-4 w-4 text-muted-foreground" />
-                          )}
-                          <span className="font-medium">Task Reminders</span>
-                        </div>
-                        <p className="text-sm text-muted-foreground mt-1">Get notified when tasks are due</p>
-                      </div>
-                      <Button
-                        onClick={requestNotificationPermission}
-                        disabled={notificationPermission === 'granted'}
-                        variant={notificationPermission === 'granted' ? 'default' : 'outline'}
-                        size="sm"
-                        data-testid="button-enable-notifications"
-                      >
-                        {notificationPermission === 'granted' ? 'Enabled' : 'Enable'}
-                      </Button>
-                    </div>
-                    
-                    {notificationPermission === 'granted' && (
-                      <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
-                        <div>
-                          <p className="font-medium text-green-800 dark:text-green-200">Test Notifications</p>
-                          <p className="text-sm text-green-600 dark:text-green-300">Send a test notification to verify it's working</p>
-                        </div>
-                        <Button
-                          onClick={async () => {
-                            const { notificationManager } = await import('@/lib/notifications');
-                            await notificationManager.showTestNotification();
-                          }}
-                          variant="outline"
-                          size="sm"
-                          className="border-green-300 dark:border-green-600 hover:bg-green-100 dark:hover:bg-green-900"
-                          data-testid="button-test-notification"
-                        >
-                          <Bell className="h-4 w-4 mr-2" />
-                          Test Now
-                        </Button>
-                      </div>
-                    )}
-                    
-                    {/* iOS-specific notification help */}
-                    <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <p className="font-medium text-blue-800 dark:text-blue-200 mb-2">📱 iPhone/iOS Users</p>
-                          <p className="text-sm text-blue-600 dark:text-blue-300 mb-2">
-                            For the best notification experience on iPhone:
-                          </p>
-                          <ul className="text-xs text-blue-600 dark:text-blue-300 space-y-1 ml-4">
-                            <li>• Tap Share → "Add to Home Screen"</li>
-                            <li>• Open DayFuse from your home screen</li>
-                            <li>• Tasks will also be added to your Calendar as backup</li>
-                          </ul>
-                        </div>
-                        <Button
-                          onClick={async () => {
-                            const { enhancedNotificationManager } = await import('@/lib/notificationFallbacks');
-                            const capabilities = enhancedNotificationManager.getCapabilities();
-                            alert(`Device Info:\n• iOS: ${capabilities.isIOS ? 'Yes' : 'No'}\n• iOS Version: ${capabilities.iosVersion || 'N/A'}\n• PWA Installed: ${capabilities.isPWAInstalled ? 'Yes' : 'No'}\n• Push Support: ${capabilities.supportsPush ? 'Yes' : 'No'}\n• Browser: ${capabilities.browserName}`);
-                          }}
-                          variant="outline"
-                          size="sm"
-                          className="border-blue-300 dark:border-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900 text-xs px-2 py-1 h-auto ml-2"
-                          data-testid="button-device-info"
-                        >
-                          Check Device
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    {notificationPermission === 'denied' && (
-                      <div className="p-3 bg-yellow-50 dark:bg-yellow-950 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                        <p className="text-sm text-yellow-800 dark:text-yellow-200 font-medium mb-1">Notifications Blocked</p>
-                        <p className="text-xs text-yellow-600 dark:text-yellow-300">
-                          To enable: Click the lock/info icon in your browser's address bar and allow notifications, then refresh the page.
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-              
-              {!notificationsEnabled && (
-                <Button
-                  onClick={handleNotificationToggle}
-                  size="sm"
-                  className="w-full bg-fuse-orange hover:bg-fuse-orange/90"
-                  data-testid="button-enable-notifications"
-                >
-                  Enable Notifications
-                </Button>
-              )}
+              <NotificationSettings />
               
               {scheduledNotifications.size > 0 && (
-                <div className="text-sm text-muted-foreground">
+                <div className="text-sm text-muted-foreground mt-4">
                   {scheduledNotifications.size} reminder{scheduledNotifications.size !== 1 ? 's' : ''} scheduled
                 </div>
               )}
