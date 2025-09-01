@@ -302,8 +302,8 @@ export default function TutorialOverlay() {
           minWidth: isMobile ? 'calc(100vw - 32px)' : '280px',
           maxHeight: isMobile ? 'calc(100vh - 80px)' : 'auto',
           zIndex: 10000,
-          // Mobile-specific optimizations
-          touchAction: 'manipulation',
+          // Allow scrolling inside the tutorial content
+          touchAction: isMobile ? 'pan-y' : 'auto',
           WebkitOverflowScrolling: 'touch',
           overflowY: isMobile ? 'auto' : 'visible'
         }}
@@ -326,13 +326,15 @@ export default function TutorialOverlay() {
         </CardHeader>
 
         <CardContent 
-          className={`space-y-4 ${isMobile ? 'max-h-64 overflow-y-auto overflow-x-hidden' : ''}`} 
+          className={`space-y-4 ${isMobile ? 'max-h-72 overflow-y-auto overflow-x-hidden' : ''}`} 
           style={isMobile ? { 
             WebkitOverflowScrolling: 'touch',
             overscrollBehavior: 'contain',
             touchAction: 'pan-y', // Allow vertical scrolling
             scrollbarWidth: 'thin',
-            scrollbarColor: '#cbd5e0 transparent'
+            scrollbarColor: '#cbd5e0 transparent',
+            // Ensure smooth scrolling
+            scrollBehavior: 'smooth'
           } : {}}>
           <div className="pr-2"> {/* Add padding for scrollbar */}
             <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
