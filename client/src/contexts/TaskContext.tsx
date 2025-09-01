@@ -25,6 +25,13 @@ export interface Task {
   dueTime?: string;
   completed: boolean;
   createdAt: Timestamp;
+  // Recurring task properties
+  isRecurring?: boolean;
+  recurringPattern?: 'daily' | 'weekly' | 'monthly';
+  recurringDays?: string[];
+  recurringEndDate?: Timestamp | null;
+  lastCompletedDate?: Timestamp | null;
+  nextDueDate?: Timestamp;
 }
 
 export interface TaskInput {
