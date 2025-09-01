@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Route, Switch } from 'wouter';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import UpdatePrompt from '@/components/UpdatePrompt';
@@ -31,6 +31,14 @@ const queryClient = new QueryClient({
 });
 
 export default function App() {
+  // Ensure page starts at top on fresh loads
+  useEffect(() => {
+    // Only scroll to top on fresh page loads, not on navigation
+    if (!sessionStorage.getItem('tutorial-scroll-y')) {
+      window.scrollTo(0, 0);
+    }
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>

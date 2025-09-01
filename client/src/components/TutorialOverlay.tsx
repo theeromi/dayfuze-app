@@ -203,7 +203,12 @@ export default function TutorialOverlay() {
         
         // Use setTimeout to ensure DOM is ready
         setTimeout(() => {
-          window.scrollTo(0, scrollY);
+          // Only restore if scrollY is meaningful (not 0 from initialization)
+          if (scrollY > 10) {
+            window.scrollTo(0, scrollY);
+          } else {
+            window.scrollTo(0, 0); // Ensure we start at top
+          }
           sessionStorage.removeItem('tutorial-scroll-y');
         }, 50);
       }
