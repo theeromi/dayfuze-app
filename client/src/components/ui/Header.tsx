@@ -7,7 +7,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function Header() {
   const { currentUser } = useAuth();
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
 
   const navItems = [
     { path: '/', label: 'Dashboard', icon: Home },
@@ -34,13 +34,18 @@ export default function Header() {
           <nav className="flex items-center space-x-1">
             {navItems.map((item) => {
               const Icon = item.icon;
+              const isActive = location === item.path;
               return (
                 <Button
                   key={item.path}
                   variant="ghost"
                   size="sm"
                   onClick={() => navigate(item.path)}
-                  className="flex items-center space-x-2 text-muted-foreground hover:text-day-blue"
+                  className={`flex items-center space-x-2 ${
+                    isActive 
+                      ? 'text-day-blue bg-day-blue/10 border border-day-blue/20' 
+                      : 'text-muted-foreground hover:text-day-blue'
+                  }`}
                   data-testid={`button-nav-${item.label.toLowerCase()}`}
                 >
                   <Icon className="h-4 w-4" />
@@ -68,7 +73,11 @@ export default function Header() {
                     }
                   }, 100);
                 }}
-                className="flex items-center space-x-2 text-gray-600 hover:text-day-blue dark:text-gray-300 dark:hover:text-day-blue"
+                className={`flex items-center space-x-2 ${
+                  location === '/profile'
+                    ? 'text-day-blue bg-day-blue/10 border border-day-blue/20'
+                    : 'text-gray-600 hover:text-day-blue dark:text-gray-300 dark:hover:text-day-blue'
+                }`}
                 data-testid="button-settings"
                 title="App Settings"
               >
@@ -79,7 +88,11 @@ export default function Header() {
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate('/profile')}
-                className="flex items-center space-x-2 text-gray-600 hover:text-day-blue dark:text-gray-300 dark:hover:text-day-blue"
+                className={`flex items-center space-x-2 ${
+                  location === '/profile'
+                    ? 'text-day-blue bg-day-blue/10 border border-day-blue/20'
+                    : 'text-gray-600 hover:text-day-blue dark:text-gray-300 dark:hover:text-day-blue'
+                }`}
                 data-testid="button-user-profile"
                 title="Profile"
               >
