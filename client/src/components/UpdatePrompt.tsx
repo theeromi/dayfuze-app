@@ -3,8 +3,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RefreshCw, Download, X, Clock, CheckCircle2, AlertCircle, Wifi, WifiOff } from 'lucide-react';
 import { updateManager, type UpdateState } from '@/lib/updateManager';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function UpdatePrompt() {
+  const { currentUser, loading } = useAuth();
   const [updateState, setUpdateState] = useState<UpdateState>({
     available: false,
     installing: false,
@@ -15,6 +17,9 @@ export default function UpdatePrompt() {
   const [showUpdate, setShowUpdate] = useState(false);
 
   useEffect(() => {
+    // Only initialize update manager when user is authenticated
+    if (loading || !currentUser) return;
+
     // Initialize update manager
     updateManager.initialize();
 
@@ -37,7 +42,7 @@ export default function UpdatePrompt() {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, []);
+  }, [currentUser, loading]);
 
   const handleUpdate = async () => {
     try {
@@ -91,7 +96,8 @@ export default function UpdatePrompt() {
     }
   };
 
-  if (!showUpdate) return null;
+  // Don't show update prompt on login screen or when not authenticated
+  if (!showUpdate || !currentUser || loading) return null;
 
   const getIcon = () => {
     if (updateState.error) {
