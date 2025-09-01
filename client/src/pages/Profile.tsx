@@ -680,7 +680,7 @@ export default function Profile() {
 
         {/* Support Section */}
         {/* Theme Settings */}
-        <Card>
+        <Card data-section="app-settings">
           <CardHeader>
             <CardTitle>App Settings</CardTitle>
           </CardHeader>

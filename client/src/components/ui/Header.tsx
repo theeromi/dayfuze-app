@@ -13,7 +13,6 @@ export default function Header() {
     { path: '/', label: 'Dashboard', icon: Home },
     { path: '/tasks', label: 'Tasks', icon: CheckSquare },
     { path: '/timeline', label: 'Timeline', icon: Calendar },
-    { path: '/profile', label: 'Profile', icon: Settings },
   ];
 
   return (
@@ -55,18 +54,41 @@ export default function Header() {
         <div className="flex items-center space-x-3">
           <ThemeToggle />
           {currentUser && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/profile')}
-              className="flex items-center space-x-2 text-gray-600 hover:text-day-blue dark:text-gray-300 dark:hover:text-day-blue"
-              data-testid="button-user-profile"
-            >
-              <User className="h-5 w-5" />
-              <span className="hidden sm:inline text-sm">
-                {currentUser.displayName || currentUser.email?.split('@')[0] || 'User'}
-              </span>
-            </Button>
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  navigate('/profile');
+                  // Scroll to settings section after navigation
+                  setTimeout(() => {
+                    const settingsSection = document.querySelector('[data-section="app-settings"]');
+                    if (settingsSection) {
+                      settingsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                  }, 100);
+                }}
+                className="flex items-center space-x-2 text-gray-600 hover:text-day-blue dark:text-gray-300 dark:hover:text-day-blue"
+                data-testid="button-settings"
+                title="App Settings"
+              >
+                <Settings className="h-4 w-4" />
+                <span className="hidden sm:inline text-sm">Settings</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/profile')}
+                className="flex items-center space-x-2 text-gray-600 hover:text-day-blue dark:text-gray-300 dark:hover:text-day-blue"
+                data-testid="button-user-profile"
+                title="Profile"
+              >
+                <User className="h-5 w-5" />
+                <span className="hidden sm:inline text-sm">
+                  {currentUser.displayName || currentUser.email?.split('@')[0] || 'User'}
+                </span>
+              </Button>
+            </>
           )}
         </div>
       </div>
