@@ -7,7 +7,7 @@ import {
   type InsertTask,
   type ScheduledNotification,
   type InsertScheduledNotification
-} from "@shared/schema";
+} from "../shared/schema";
 import { randomUUID } from "crypto";
 
 // modify the interface with any CRUD methods

@@ -8,7 +8,7 @@ import {
   insertPushSubscriptionSchema, 
   insertTaskSchema, 
   insertScheduledNotificationSchema 
-} from "@shared/schema";
+} from "../shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Health check endpoint for deployment monitoring
