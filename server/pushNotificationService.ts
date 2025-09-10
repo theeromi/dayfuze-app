@@ -207,7 +207,9 @@ export class PushNotificationService {
           ],
         };
 
-        const result = await this.sendNotificationToUser(notification.userId, payload);
+        const result = notification.userId 
+          ? await this.sendNotificationToUser(notification.userId, payload)
+          : { sent: 0, failed: 0 };
         
         if (result.sent > 0) {
           // Mark notification as sent

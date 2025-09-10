@@ -157,13 +157,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (task.dueTime) {
         const notificationTime = new Date(task.dueTime.getTime());
         
-        await pushNotificationService.scheduleNotification(
-          task.userId,
+        if (task.userId) {
+          await pushNotificationService.scheduleNotification(
+            task.userId,
           task.id,
           `📋 Task Due: ${task.title}`,
           task.description || 'Your task is due now!',
-          notificationTime
-        );
+            notificationTime
+          );
+        }
       }
       
       res.json({ 

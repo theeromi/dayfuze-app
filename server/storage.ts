@@ -77,6 +77,8 @@ export class MemStorage implements IStorage {
     const subscription: PushSubscription = {
       ...insertSubscription,
       id,
+      userId: insertSubscription.userId ?? null,
+      userAgent: insertSubscription.userAgent ?? null,
       createdAt: new Date(),
       isActive: true,
     };
@@ -108,6 +110,9 @@ export class MemStorage implements IStorage {
     const task: Task = {
       ...insertTask,
       id,
+      userId: insertTask.userId ?? null,
+      description: insertTask.description ?? null,
+      dueTime: insertTask.dueTime ?? null,
       completed: false,
       createdAt: new Date(),
     };
@@ -145,6 +150,8 @@ export class MemStorage implements IStorage {
     const notification: ScheduledNotification = {
       ...insertNotification,
       id,
+      userId: insertNotification.userId ?? null,
+      taskId: insertNotification.taskId ?? null,
       sent: false,
       sentAt: null,
       createdAt: new Date(),
