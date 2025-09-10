@@ -20,6 +20,7 @@ import Profile from '@/pages/Profile';
 import Privacy from '@/pages/Privacy';
 import Terms from '@/pages/Terms';
 import Contact from '@/pages/Contact';
+import { NotificationTest } from '@/components/NotificationTest';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -58,6 +59,7 @@ export default function App() {
                   <Route path="/privacy" component={Privacy} />
                   <Route path="/terms" component={Terms} />
                   <Route path="/contact" component={Contact} />
+                  <Route path="/notifications-test" component={NotificationTest} />
                   <Route path="/" component={Dashboard} />
                 </Switch>
               </div>

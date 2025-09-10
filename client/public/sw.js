@@ -333,8 +333,10 @@ self.addEventListener('fetch', event => {
   );
 });
 
-// Enhanced push notification handler for Android APK-style notifications
+// Enhanced push notification handler for real server-sent push notifications
 self.addEventListener('push', event => {
+  console.log('Push event received:', event);
+  
   let data = {};
   let title = 'DayFuse Reminder';
   let body = 'You have a task reminder';
@@ -344,25 +346,30 @@ self.addEventListener('push', event => {
       data = event.data.json();
       title = data.title || title;
       body = data.body || body;
+      console.log('Push notification data:', data);
     } catch (e) {
+      console.warn('Failed to parse push data as JSON:', e);
       body = event.data.text() || body;
     }
   }
 
   const options = {
     body: body,
-    icon: '/dayfuse-logo-192.png',
-    badge: '/dayfuse-logo-192.png',
+    icon: data.icon || '/dayfuse-logo-192.png',
+    badge: data.badge || '/dayfuse-logo-192.png',
+    image: data.image,
     vibrate: [200, 100, 200, 100, 200],
     data: {
-      taskId: data.taskId || 'unknown',
+      taskId: data.data?.taskId || data.taskId || 'unknown',
+      notificationId: data.data?.notificationId,
       dateOfArrival: Date.now(),
-      url: data.url || '/dashboard'
+      url: data.data?.url || data.url || '/dashboard',
+      originalData: data.data || {}
     },
-    actions: [
+    actions: data.actions || [
       {
         action: 'complete',
-        title: '✓ Mark Complete',
+        title: '✓ Complete',
         icon: '/dayfuse-logo-192.png'
       },
       {
@@ -379,7 +386,7 @@ self.addEventListener('push', event => {
     requireInteraction: true, // Android will keep notification until user acts
     silent: false,
     renotify: true,
-    tag: data.taskId || 'dayfuse-reminder'
+    tag: data.data?.taskId || data.taskId || 'dayfuse-reminder'
   };
 
   const promiseChain = self.registration.showNotification(title, options);
